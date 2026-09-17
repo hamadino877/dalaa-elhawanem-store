@@ -225,9 +225,9 @@
 
     <!-- JavaScript البرمجي وربط Supabase -->
     <script>
-        // 🔑 1. ضع بيانات مشروع Supabase الخاص بك هنا:
-        const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; // رابط مشروعك في Supabase
-        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // مفتاح Anon الخاص بمشروعك
+        // 🔑 1. بيانات مشروع Supabase الخاص بك:
+        const SUPABASE_URL = "https://niuxwiuaiqahnkptlysm.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdXh3aXVhaXFhaG5rcHRseXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTcwOTQsImV4cCI6MjEwNTIzMzA5NH0.efj-duLJhE1xcvaVeFjzcGYGPAEgQJ87nrPp9V10__w";
 
         // تهيئة عميل Supabase
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -255,9 +255,8 @@
                 if (isAdminLoggedIn) renderAdminProducts();
             } catch (err) {
                 console.error("خطأ في جلب المنتجات:", err);
-                // عرض تنبيه في حالة لم يضع المستخدم المفاتيح بعد
                 document.getElementById('loading-spinner').innerHTML = `
-                    <p class="text-rose-600 font-bold text-sm">يرجى التأكد من وضع بيانات SUPABASE_URL و SUPABASE_ANON_KEY الخاصة بك في الكود!</p>
+                    <p class="text-rose-600 font-bold text-sm">حدث خطأ في الاتصال بالسيرفر: ${err.message || err}</p>
                 `;
             }
         }
