@@ -11,11 +11,12 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- مكتبة Supabase الرسمية -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body { font-family: 'Cairo', sans-serif; }
-        .logo-gradient {
-            background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
-        }
+        .logo-gradient { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); }
     </style>
 </head>
 <body class="bg-rose-50/30 text-gray-800 min-h-screen flex flex-col">
@@ -37,7 +38,6 @@
     <!-- 2. الهيدر واللوجو ورأس الصفحة -->
     <header class="bg-white shadow-sm border-b sticky top-[36px] z-40">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-            
             <!-- اللوجو واسم المتجر -->
             <a href="#" class="flex items-center gap-3">
                 <div class="logo-gradient text-white w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2 border-rose-200">
@@ -49,16 +49,16 @@
                 </div>
             </a>
 
-            <!-- القائمة وأزرار التفاعل -->
+            <!-- أزرار التفاعل -->
             <div class="flex items-center gap-3">
-                <!-- زر لوحة التحكم المحمي بكلمة سر -->
+                <!-- زر لوحة التحكم -->
                 <button onclick="toggleAdminModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition">
                     <i class="fa-solid fa-lock text-rose-600"></i>
                     <span class="hidden md:inline">لوحة الإدارة</span>
                 </button>
 
                 <!-- زر السلة -->
-                <button onclick="toggleCartDrawer()" class="relative bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-rose-100 transition">
+                <button onclick="toggleCartDrawer(true)" class="relative bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-rose-100 transition">
                     <i class="fa-solid fa-cart-shopping text-lg"></i>
                     <span>السلة</span>
                     <span id="cart-badge" class="bg-rose-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
@@ -67,38 +67,37 @@
         </div>
     </header>
 
-    <!-- 3. قسم الهيرو / الترحيب والعنوان -->
-    <section class="bg-gradient-to-b from-rose-100/50 to-transparent py-8 px-4">
-        <div class="max-w-6xl mx-auto text-center space-y-3">
-            <span class="bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1 rounded-full inline-block border border-rose-200">
-                ✨ تشكيلة الموسم الجديدة وصلت حديثاً
-            </span>
-            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900">أرقى الموديلات بأعلى خامة وأفضل سعر</h1>
-            <p class="text-gray-600 text-sm md:text-base max-w-xl mx-auto">
-                فرعنا الرئيسي: <span class="font-bold text-rose-700"><i class="fa-solid fa-location-dot"></i> المحلة الكبرى - شارع البهلوان</span> | التوصيل متاح لجميع المحافظات والمعاينة قبل الاستلام.
-            </p>
-        </div>
+    <!-- 3. قسم الهيرو والترحيب -->
+    <section class="bg-gradient-to-b from-rose-100/50 to-transparent py-8 px-4 text-center space-y-3">
+        <span class="bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1 rounded-full inline-block border border-rose-200">✨ تشكيلة الموسم الجديدة وصلت حديثاً</span>
+        <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900">أرقى الموديلات بأعلى خامة وأفضل سعر</h1>
+        <p class="text-gray-600 text-sm md:text-base max-w-xl mx-auto">
+            فرعنا الرئيسي: <span class="font-bold text-rose-700"><i class="fa-solid fa-location-dot"></i> المحلة الكبرى - شارع البهلوان</span> | التوصيل متاح لجميع المحافظات والمعاينة قبل الاستلام.
+        </p>
     </section>
 
-    <!-- 4. عرض المنتجات المعروضة -->
+    <!-- 4. عرض المنتجات المعروضة من Supabase -->
     <main class="max-w-6xl mx-auto px-4 py-6 flex-grow">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fa-solid fa-shirt text-rose-600"></i>
-                المنتجات المتاحة حالياً
-            </h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-shirt text-rose-600"></i>
+            المنتجات المتاحة حالياً
+        </h2>
+
+        <!-- مؤشر التحميل -->
+        <div id="loading-spinner" class="text-center py-12">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-rose-600"></i>
+            <p class="text-xs text-gray-500 mt-2">جاري جلب أحدث المنتجات من السيرفر...</p>
         </div>
 
-        <!-- شبكة عرض المنتجات -->
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <!-- يتم تحميل المنتجات هنا تلقائياً -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden">
+            <!-- المنتجات تُعرض هنا ديناميكياً -->
         </div>
     </main>
 
     <!-- 5. قسم آراء العملاء -->
     <section class="bg-white py-12 border-t border-b mt-12">
         <div class="max-w-6xl mx-auto px-4">
-            <h2 class="text-2xl font-extrabold text-center text-gray-900 mb-8">آراء هوانم المحلة الكبرى والمافظات</h2>
+            <h2 class="text-2xl font-extrabold text-center text-gray-900 mb-8">آراء هوانم المحلة الكبرى والمحافظات</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-rose-50/40 p-5 rounded-2xl border border-rose-100 space-y-2">
                     <div class="flex justify-between items-center">
@@ -125,7 +124,7 @@
         </div>
     </section>
 
-    <!-- 6. الفوتر / تذييل الصفحة -->
+    <!-- 6. الفوتر / تذييل الصفحة مع بيانات الاتصال -->
     <footer class="bg-gray-900 text-white pt-10 pb-6">
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-gray-800 text-center md:text-right">
             <div>
@@ -162,249 +161,242 @@
     <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden transition-opacity">
         <div class="bg-white w-full max-w-md h-full mr-auto shadow-2xl flex flex-col p-6 overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4 mb-4">
-                <h3 class="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-cart-shopping text-rose-600"></i>
-                    سلة المشتريات
-                </h3>
+                <h3 class="text-lg font-extrabold text-gray-900 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-rose-600"></i> سلة المشتريات</h3>
                 <button onclick="toggleCartDrawer(false)" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
             </div>
-
-            <div id="cart-items" class="space-y-4 flex-grow">
-                <!-- عناصر السلة -->
-            </div>
-
+            <div id="cart-items" class="space-y-4 flex-grow"></div>
             <div id="cart-summary" class="border-t pt-4 mt-4 space-y-3">
-                <div class="flex justify-between text-sm font-bold">
-                    <span>إجمالي الخصم المستحق:</span>
-                    <span id="cart-discount" class="text-emerald-600">0 ج.م</span>
-                </div>
-                <div class="flex justify-between text-lg font-black">
-                    <span>المبلغ الإجمالي:</span>
-                    <span id="cart-total" class="text-rose-700">0 ج.م</span>
-                </div>
-
+                <div class="flex justify-between text-sm font-bold"><span>إجمالي الخصم المستحق:</span><span id="cart-discount" class="text-emerald-600">0 ج.م</span></div>
+                <div class="flex justify-between text-lg font-black"><span>المبلغ الإجمالي:</span><span id="cart-total" class="text-rose-700">0 ج.م</span></div>
                 <div class="space-y-2 pt-2">
-                    <input type="text" id="cust-name" placeholder="الاسم بالكامل" class="w-full border p-2.5 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 outline-none">
-                    <input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل" class="w-full border p-2.5 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 outline-none">
-                    <input type="text" id="cust-address" placeholder="عنوان التوصيل بالتفصيل" class="w-full border p-2.5 rounded-xl text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+                    <input type="text" id="cust-name" placeholder="الاسم بالكامل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
+                    <input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
+                    <input type="text" id="cust-address" placeholder="عنوان التوصيل بالتفصيل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
                 </div>
-
                 <button onclick="sendOrderWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                    تأكيد الطلب وإرسال عبر الواتساب
+                    <i class="fa-brands fa-whatsapp text-xl"></i> تأكيد الطلب وإرسال عبر الواتساب
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 8. نافذة لوحة تحكم الإدارة (Admin Modal) -->
+    <!-- 8. نافذة لوحة تحكم الإدارة السحابية المربوطة بـ Supabase -->
     <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-xl font-black text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-rose-600"></i>
-                    لوحة إدارة متجر (دلع الهوانم)
-                </h3>
+                <h3 class="text-xl font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-sliders text-rose-600"></i> لوحة إدارة متجر (دلع الهوانم)</h3>
                 <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
             </div>
 
-            <!-- نموذج إضافة منتج جديد -->
+            <!-- نموذج إضافة منتج جديد ورفع الصورة مباشرة لـ Supabase -->
             <form id="add-product-form" onsubmit="handleAddProduct(event)" class="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 space-y-3">
-                <h4 class="font-bold text-rose-800 text-sm">إضافة منتج جديد للمحل</h4>
+                <h4 class="font-bold text-rose-800 text-sm">إضافة منتج جديد وتخزينه في Supabase</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input type="text" id="p-title" placeholder="اسم المنتج (مثال: إسدال فسكوز ساتان)" required class="border p-2 rounded-xl text-xs">
-                    <input type="url" id="p-image" placeholder="رابط صورة المنتج (URL)" required class="border p-2 rounded-xl text-xs">
+                    
+                    <!-- رفع الصورة من الاستوديو أو الجهاز -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">اختر صورة المنتج من الجهاز:</label>
+                        <input type="file" id="p-image-file" accept="image/*" required class="border p-1.5 rounded-xl text-xs w-full bg-white">
+                    </div>
+
                     <input type="number" id="p-price" placeholder="السعر بعد الخصم (ج.م)" required class="border p-2 rounded-xl text-xs">
                     <input type="number" id="p-old-price" placeholder="السعر الأصلي قبل الخصم (ج.م)" class="border p-2 rounded-xl text-xs">
                 </div>
                 <textarea id="p-desc" placeholder="وصف قصير للمنتج والخامة..." class="w-full border p-2 rounded-xl text-xs" rows="2"></textarea>
+                
                 <div class="flex justify-between items-center">
                     <select id="p-status" class="border p-2 rounded-xl text-xs font-bold">
                         <option value="available">متوفر بالمعرض</option>
                         <option value="out">نفدت الكمية</option>
                     </select>
-                    <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition">
-                        حفظ ونشر المنتج
+                    <button type="submit" id="submit-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                        <span>حفظ ونشر على Supabase</span>
                     </button>
                 </div>
             </form>
 
-            <!-- قائمة التحكم بالمنتجات الحالية -->
             <div class="space-y-3">
-                <h4 class="font-bold text-gray-800 text-sm">المنتجات الحالية للتحكم والتعديل:</h4>
-                <div id="admin-products-list" class="space-y-2">
-                    <!-- المنتجات الحالية للتحكم -->
-                </div>
+                <h4 class="font-bold text-gray-800 text-sm">المنتجات المنشورة حالياً:</h4>
+                <div id="admin-products-list" class="space-y-2"></div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript التفاعلي وحماية الإدارة -->
+    <!-- JavaScript البرمجي وربط Supabase -->
     <script>
-        // 🔑 كلمة سر لوحة التحكم (قم بتغييرها هنا إلى أي كلمة سر تريدها)
+        // 🔑 1. ضع بيانات مشروع Supabase الخاص بك هنا:
+        const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; // رابط مشروعك في Supabase
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // مفتاح Anon الخاص بمشروعك
+
+        // تهيئة عميل Supabase
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 🔐 كلمة مرور لوحة الإدارة
         const ADMIN_PASSWORD = "123456"; 
         let isAdminLoggedIn = false;
-
-        // المنتجات الافتراضية
-        const defaultProducts = [
-            {
-                id: 1,
-                title: "إسدال فسكوز ساتان قطن فاخر",
-                price: 450,
-                oldPrice: 500,
-                image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800",
-                desc: "خامة ممتازة ومريحة جداً، مناسبة للاستخدام اليومي والخروج السريع بأرقى الخامات.",
-                status: "available"
-            },
-            {
-                id: 2,
-                title: "عباية استقبال مطرزة راقية",
-                price: 650,
-                oldPrice: 750,
-                image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=800",
-                desc: "تصميم عصري وجذاب بتطريز يدوي على الكوم والصدر عالية الجودة.",
-                status: "available"
-            }
-        ];
-
-        function getProducts() {
-            const saved = localStorage.getItem('dala3_products');
-            return saved ? JSON.parse(saved) : defaultProducts;
-        }
-
-        function saveProducts(products) {
-            localStorage.setItem('dala3_products', JSON.stringify(products));
-            renderProducts();
-            renderAdminProducts();
-        }
-
+        let productsList = [];
         let cart = [];
+
+        // تحميل المنتجات عند فتح الصفحة
+        async function fetchProducts() {
+            try {
+                const { data, error } = await _supabase
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                productsList = data || [];
+                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('products-grid').classList.remove('hidden');
+                renderProducts();
+                if (isAdminLoggedIn) renderAdminProducts();
+            } catch (err) {
+                console.error("خطأ في جلب المنتجات:", err);
+                // عرض تنبيه في حالة لم يضع المستخدم المفاتيح بعد
+                document.getElementById('loading-spinner').innerHTML = `
+                    <p class="text-rose-600 font-bold text-sm">يرجى التأكد من وضع بيانات SUPABASE_URL و SUPABASE_ANON_KEY الخاصة بك في الكود!</p>
+                `;
+            }
+        }
 
         // عرض المنتجات للعملاء
         function renderProducts() {
-            const products = getProducts();
             const grid = document.getElementById('products-grid');
 
-            grid.innerHTML = products.map(p => `
+            if (productsList.length === 0) {
+                grid.innerHTML = `<p class="col-span-3 text-center text-gray-400 py-8">لا توجد منتجات معروضة حالياً. أضف منتجات جديدة من لوحة الإدارة.</p>`;
+                return;
+            }
+
+            grid.innerHTML = productsList.map(p => `
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition p-4 flex flex-col justify-between space-y-3">
                     <div class="space-y-3">
                         <div class="relative aspect-square rounded-2xl overflow-hidden bg-gray-50">
                             <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover">
-                            ${p.oldPrice ? `<span class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">تخفيض مميز</span>` : ''}
+                            ${p.old_price ? `<span class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
                         </div>
                         <h3 class="font-black text-gray-900 text-base leading-snug">${p.title}</h3>
-                        <p class="text-gray-500 text-xs line-clamp-2">${p.desc}</p>
+                        <p class="text-gray-500 text-xs line-clamp-2">${p.desc || ''}</p>
                     </div>
-
                     <div class="space-y-3 pt-2 border-t border-gray-50">
                         <div class="flex items-baseline justify-between">
                             <span class="text-xl font-black text-rose-700">${p.price} <span class="text-xs font-normal">ج.م</span></span>
-                            ${p.oldPrice ? `<span class="text-xs text-gray-400 line-through">${p.oldPrice} ج.م</span>` : ''}
+                            ${p.old_price ? `<span class="text-xs text-gray-400 line-through">${p.old_price} ج.م</span>` : ''}
                         </div>
-
                         ${p.status === 'available' ? `
-                            <button onclick="addToCart(${p.id})" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                            <button onclick="addToCart(${p.id})" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-cart-plus"></i> إضافة للسلة
                             </button>
                         ` : `
-                            <button disabled class="w-full bg-gray-200 text-gray-500 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed">
-                                نفدت الكمية من المعرض
-                            </button>
+                            <button disabled class="w-full bg-gray-200 text-gray-500 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed">نفدت الكمية</button>
                         `}
                     </div>
                 </div>
             `).join('');
         }
 
-        // إضافة منتج للسلة
-        function addToCart(productId) {
-            const products = getProducts();
-            const product = products.find(p => p.id === productId);
-            const itemInCart = cart.find(item => item.id === productId);
+        // رفع الصورة مباشرة إلى حافظة Supabase Storage
+        async function uploadProductImage(file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `products/${fileName}`;
 
-            if (itemInCart) {
-                itemInCart.qty++;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
+            // رفع الملف إلى الهاندر (product-images)
+            const { data, error } = await _supabase.storage
+                .from('product-images')
+                .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-            updateCartUI();
-            toggleCartDrawer(true);
+            if (error) throw error;
+
+            // جلب الرابط العمومي المباشر للصورة
+            const { data: publicUrlData } = _supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            return publicUrlData.publicUrl;
         }
 
-        // تحديث واجهة السلة
-        function updateCartUI() {
-            document.getElementById('cart-badge').innerText = cart.reduce((sum, item) => sum + item.qty, 0);
-            const cartItemsContainer = document.getElementById('cart-items');
-            
-            if (cart.length === 0) {
-                cartItemsContainer.innerHTML = `<p class="text-center text-gray-400 text-xs py-8">السلة فارغة حالياً. أضيفي منتجات للتسوق!</p>`;
-                document.getElementById('cart-total').innerText = '0 ج.م';
-                document.getElementById('cart-discount').innerText = '0 ج.م';
+        // إضافة منتج جديد إلى قاعدة بيانات Supabase
+        async function handleAddProduct(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const fileInput = document.getElementById('p-image-file');
+
+            if (!fileInput.files[0]) {
+                alert("يرجى اختيار صورة للمنتج من جهازك!");
                 return;
             }
 
-            let rawTotal = 0;
-            let totalQty = 0;
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الصورة وحفظ المنتج...`;
 
-            cartItemsContainer.innerHTML = cart.map(item => {
-                rawTotal += item.price * item.qty;
-                totalQty += item.qty;
+                // 1. رفع الصورة إلى Supabase Storage
+                const imageUrl = await uploadProductImage(fileInput.files[0]);
 
-                return `
-                    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                        <img src="${item.image}" class="w-14 h-14 object-cover rounded-xl">
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-xs text-gray-900">${item.title}</h4>
-                            <span class="text-xs text-rose-600 font-black">${item.price} ج.م</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border">
-                            <button onclick="changeQty(${item.id}, -1)" class="text-xs font-bold px-1 text-gray-600">-</button>
-                            <span class="text-xs font-bold">${item.qty}</span>
-                            <button onclick="changeQty(${item.id}, 1)" class="text-xs font-bold px-1 text-gray-600">+</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                // 2. إدخال بيانات المنتج في جدول (products)
+                const { error } = await _supabase
+                    .from('products')
+                    .insert([{
+                        title: document.getElementById('p-title').value,
+                        price: Number(document.getElementById('p-price').value),
+                        old_price: Number(document.getElementById('p-old-price').value) || null,
+                        desc: document.getElementById('p-desc').value,
+                        image: imageUrl,
+                        status: document.getElementById('p-status').value
+                    }]);
 
-            const extraDiscount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
-            const finalTotal = rawTotal - extraDiscount;
+                if (error) throw error;
 
-            document.getElementById('cart-discount').innerText = `${extraDiscount} ج.م`;
-            document.getElementById('cart-total').innerText = `${finalTotal} ج.م`;
-        }
-
-        function changeQty(productId, delta) {
-            const item = cart.find(i => i.id === productId);
-            if (item) {
-                item.qty += delta;
-                if (item.qty <= 0) {
-                    cart = cart.filter(i => i.id !== productId);
-                }
+                alert("🎉 تم نشر المنتج ورفع الصورة بنجاح على Supabase!");
+                document.getElementById('add-product-form').reset();
+                fetchProducts(); // إعادة جلب المنتجات المحدثة
+            } catch (err) {
+                alert("حدث خطأ أثناء الإضافة: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `حفظ ونشر على Supabase`;
             }
-            updateCartUI();
         }
 
-        function toggleCartDrawer(show = null) {
-            const drawer = document.getElementById('cart-drawer');
-            if (show === true) drawer.classList.remove('hidden');
-            else if (show === false) drawer.classList.add('hidden');
-            else drawer.classList.toggle('hidden');
+        // تغيير حالة المنتج (متوفر / نفدت الكمية)
+        async function toggleProductStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'available' ? 'out' : 'available';
+            const { error } = await _supabase
+                .from('products')
+                .update({ status: newStatus })
+                .eq('id', id);
+
+            if (error) alert("حدث خطأ أثناء التحديث");
+            else fetchProducts();
         }
 
-        // 🔒 فتح لوحة التحكم بعد التحقق من كلمة السر
+        // حذف منتج من Supabase
+        async function deleteProduct(id) {
+            if (confirm("هل أنت متاكد من حذف هذا المنتج نهائياً من المتجر؟")) {
+                const { error } = await _supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) alert("حدث خطأ أثناء الحذف");
+                else fetchProducts();
+            }
+        }
+
+        // إدارة لوحة التحكم بكلمة سر
         function toggleAdminModal() {
             if (!isAdminLoggedIn) {
                 const pass = prompt("🔐 أدخل كلمة السر الخاصة بمدير متجر دلع الهوانم:");
                 if (pass === ADMIN_PASSWORD) {
                     isAdminLoggedIn = true;
-                    alert("تم تسجيل الدخول بنجاح كمدير للمتجر!");
                 } else if (pass !== null) {
-                    alert("❌ كلمة السر غير صحيحة! لا يمكنك الوصول للوحة التحكم.");
+                    alert("❌ كلمة السر غير صحيحة!");
                     return;
-                } else {
-                    return;
-                }
+                } else return;
             }
             document.getElementById('admin-modal').classList.remove('hidden');
             renderAdminProducts();
@@ -414,12 +406,10 @@
             document.getElementById('admin-modal').classList.add('hidden');
         }
 
-        // إدارة المنتجات
         function renderAdminProducts() {
-            const products = getProducts();
             const container = document.getElementById('admin-products-list');
 
-            container.innerHTML = products.map(p => `
+            container.innerHTML = productsList.map(p => `
                 <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs">
                     <div class="flex items-center gap-3">
                         <img src="${p.image}" class="w-10 h-10 object-cover rounded-lg">
@@ -429,86 +419,98 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="toggleProductStatus(${p.id})" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold">تغيير الحالة</button>
+                        <button onclick="toggleProductStatus(${p.id}, '${p.status}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold">تغيير الحالة</button>
                         <button onclick="deleteProduct(${p.id})" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function handleAddProduct(e) {
-            e.preventDefault();
-            const products = getProducts();
-
-            const newProduct = {
-                id: Date.now(),
-                title: document.getElementById('p-title').value,
-                image: document.getElementById('p-image').value,
-                price: Number(document.getElementById('p-price').value),
-                oldPrice: Number(document.getElementById('p-old-price').value) || null,
-                desc: document.getElementById('p-desc').value,
-                status: document.getElementById('p-status').value
-            };
-
-            products.push(newProduct);
-            saveProducts(products);
-            document.getElementById('add-product-form').reset();
-            alert('تمت إضافة المنتج بنجاح لمتجر دلع الهوانم!');
+        // إدارة السلة والطلبات عبر الواتساب (01065852975)
+        function addToCart(id) {
+            const p = productsList.find(item => item.id === id);
+            const inCart = cart.find(item => item.id === id);
+            if (inCart) inCart.qty++;
+            else cart.push({ id: p.id, title: p.title, price: p.price, image: p.image, qty: 1 });
+            updateCartUI();
+            toggleCartDrawer(true);
         }
 
-        function toggleProductStatus(id) {
-            const products = getProducts();
-            const product = products.find(p => p.id === id);
-            if (product) {
-                product.status = product.status === 'available' ? 'out' : 'available';
-                saveProducts(products);
-            }
-        }
-
-        function deleteProduct(id) {
-            if (confirm('هل أنت متاكد من حذف هذا المنتج؟')) {
-                let products = getProducts();
-                products = products.filter(p => p.id !== id);
-                saveProducts(products);
-            }
-        }
-
-        // إرسال الطلب عبر الواتساب
-        function sendOrderWhatsApp() {
+        function updateCartUI() {
+            document.getElementById('cart-badge').innerText = cart.reduce((s, i) => s + i.qty, 0);
+            const container = document.getElementById('cart-items');
             if (cart.length === 0) {
-                alert('السلة فارغة!');
+                container.innerHTML = `<p class="text-center text-gray-400 text-xs py-8">السلة فارغة حالياً.</p>`;
+                document.getElementById('cart-total').innerText = '0 ج.م';
+                document.getElementById('cart-discount').innerText = '0 ج.م';
                 return;
             }
 
+            let rawTotal = 0, totalQty = 0;
+            container.innerHTML = cart.map(i => {
+                rawTotal += i.price * i.qty;
+                totalQty += i.qty;
+                return `
+                    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                        <img src="${i.image}" class="w-14 h-14 object-cover rounded-xl">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-xs text-gray-900">${i.title}</h4>
+                            <span class="text-xs text-rose-600 font-black">${i.price} ج.م</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border">
+                            <button onclick="changeQty(${i.id}, -1)" class="text-xs font-bold px-1 text-gray-600">-</button>
+                            <span class="text-xs font-bold">${i.qty}</span>
+                            <button onclick="changeQty(${i.id}, 1)" class="text-xs font-bold px-1 text-gray-600">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const extraDiscount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
+            document.getElementById('cart-discount').innerText = `${extraDiscount} ج.م`;
+            document.getElementById('cart-total').innerText = `${rawTotal - extraDiscount} ج.م`;
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+            }
+            updateCartUI();
+        }
+
+        function toggleCartDrawer(show) {
+            const drawer = document.getElementById('cart-drawer');
+            if (show) drawer.classList.remove('hidden');
+            else drawer.classList.add('hidden');
+        }
+
+        function sendOrderWhatsApp() {
+            if (cart.length === 0) return alert('السلة فارغة!');
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
             const address = document.getElementById('cust-address').value.trim();
-
-            if (!name || !phone || !address) {
-                alert('يرجى ملء بيانات الاسم، الهاتف، والعنوان أولاً لتأكيد الطلب!');
-                return;
-            }
+            if (!name || !phone || !address) return alert('يرجى ملء كافة البيانات للتأكيد!');
 
             const itemsText = cart.map(i => `▪️ ${i.title} (الكمية: ${i.qty}) - السعر: ${i.price * i.qty} ج`).join('%0A');
             const total = document.getElementById('cart-total').innerText;
             const discount = document.getElementById('cart-discount').innerText;
 
             const message = `مرحباً متجر *دلع الهوانم* 👋%0A` +
-                `أرغب في تأكيد طلب جديد من الموقع:%0A%0A` +
-                `👤 *اسم العميل:* ${name}%0A` +
-                `📱 *رقم التواصل:* ${phone}%0A` +
+                `طلب جديد من الموقع:%0A%0A` +
+                `👤 *الاسم:* ${name}%0A` +
+                `📱 *الهاتف:* ${phone}%0A` +
                 `📍 *العنوان:* ${address}%0A%0A` +
                 `🛍️ *الطلبات:*%0A${itemsText}%0A%0A` +
                 `🎉 *الخصم المستحق:* ${discount}%0A` +
-                `💰 *الإجمالي النهائي:* ${total}%0A%0A` +
-                `يرجى تأكيد الاستلام والتوصيل.`;
+                `💰 *الإجمالي النهائي:* ${total}`;
 
-            const whatsappUrl = `https://wa.me/201065852975?text=${message}`;
-            window.open(whatsappUrl, '_blank');
+            window.open(`https://wa.me/201065852975?text=${message}`, '_blank');
         }
 
-        // تشغيل واجهة المنتجات
-        renderProducts();
+        // بداية التشغيل
+        fetchProducts();
     </script>
 </body>
 </html>
