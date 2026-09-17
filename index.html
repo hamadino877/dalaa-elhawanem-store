@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دلع الهوانم - الموضة والأناقة</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Cairo & Tajawal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-12">
+
+    <!-- 1. شريط العرض العلوي / التخصيم التفاعلي -->
+    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white py-2 px-4 text-center font-bold text-sm md:text-base sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center px-2">
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-fire text-amber-300"></i>
+                عرض خاص: خصم <span class="text-amber-300 font-extrabold mx-1">50 جنيه</span> مع كل قطعة تضيفها!
+            </span>
+            <div class="bg-white/20 px-3 py-1 rounded-full text-xs md:text-sm font-bold">
+                وفرت: <span id="saved-amount" class="text-amber-300 text-base">0</span> جـ
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. الهيدر / القائمة العلوية -->
+    <header class="bg-white shadow-sm border-b sticky top-[36px] z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <!-- شعار المتجر -->
+            <a href="#" class="text-2xl font-black text-teal-800 tracking-wide flex items-center gap-2">
+                <span class="bg-teal-700 text-white w-11 h-11 rounded-full flex items-center justify-center text-lg font-black shadow-sm">د.ه</span>
+                <span id="store-name-display">دلع الهوانم</span>
+            </a>
+
+            <!-- وروابط التنقل -->
+            <nav class="hidden md:flex gap-6 font-semibold text-gray-700">
+                <a href="#product-section" class="hover:text-teal-600 transition">المنتجات</a>
+                <a href="#reviews-section" class="hover:text-teal-600 transition">رأي العملاء</a>
+                <a href="#contact-section" class="hover:text-teal-600 transition">تواصل معنا</a>
+            </nav>
+
+            <!-- زر السلة/الواتساب -->
+            <div class="flex items-center gap-3">
+                <a id="header-whatsapp-btn" href="#" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow-sm transition">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>طلب سريع</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. قسم عرض المنتج الرئيسي -->
+    <main id="product-section" class="max-w-6xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-3xl shadow-sm border p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            
+            <!-- معرض الصور -->
+            <div class="space-y-4">
+                <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-inner border border-gray-100">
+                    <img id="main-product-img" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800" alt="صورة المنتج" class="w-full h-full object-cover">
+                </div>
+                <!-- مصغرات الصور -->
+                <div class="grid grid-cols-4 gap-2">
+                    <img onclick="changeImage(this.src)" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800" class="aspect-square rounded-lg border-2 border-teal-600 cursor-pointer object-cover thumbnail-btn">
+                    <img onclick="changeImage(this.src)" src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=800" class="aspect-square rounded-lg border cursor-pointer object-cover opacity-70 hover:opacity-100 transition thumbnail-btn">
+                    <img onclick="changeImage(this.src)" src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800" class="aspect-square rounded-lg border cursor-pointer object-cover opacity-70 hover:opacity-100 transition thumbnail-btn">
+                    <img onclick="changeImage(this.src)" src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800" class="aspect-square rounded-lg border cursor-pointer object-cover opacity-70 hover:opacity-100 transition thumbnail-btn">
+                </div>
+            </div>
+
+            <!-- معلومات وتفاصيل الطلب -->
+            <div class="space-y-6">
+                <!-- شارة التخفيض -->
+                <div class="inline-block bg-rose-100 text-rose-700 font-bold px-3 py-1 rounded-full text-xs">
+                    🔥 الأكثر مبيعاً هذا الأسبوع
+                </div>
+
+                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug">
+                    إسدال فسكوز ساتان قطن صافي فاخر (تصميم راقي ومريح)
+                </h1>
+
+                <!-- التقييم -->
+                <div class="flex items-center gap-2 text-amber-500 text-sm">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <span class="text-gray-500 font-semibold">(4.9 من 5 بناءً على 128 تقييم)</span>
+                </div>
+
+                <!-- السعر -->
+                <div class="bg-gray-50 p-4 rounded-2xl border flex items-baseline gap-4">
+                    <div class="text-3xl font-black text-teal-700">
+                        <span id="final-price">450</span> جـ
+                    </div>
+                    <div class="text-lg text-gray-400 line-through">
+                        <span id="original-price">500</span> جـ
+                    </div>
+                    <span class="mr-auto bg-emerald-100 text-emerald-800 font-bold text-xs px-2.5 py-1 rounded-lg">
+                        خصم تلقائي متزايد
+                    </span>
+                </div>
+
+                <!-- الوصف السريع -->
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    تصميم عصري بخامة فسكوز ساتان عالية الجودة وناعمة على البشرة. واسع ومريح، مناسب للاستخدام اليومي والخروج السريع والبيت بأعلى خامات القطن الصافي.
+                </p>
+
+                <!-- خيارات اللون -->
+                <div>
+                    <label class="block font-bold text-gray-800 mb-2 text-sm">اختر اللون:</label>
+                    <div class="flex gap-3" id="color-options">
+                        <button onclick="selectColor(this, 'أسود')" class="color-btn border-2 border-teal-600 bg-teal-50 px-4 py-2 rounded-xl text-sm font-bold text-teal-900">أسود</button>
+                        <button onclick="selectColor(this, 'كحلي')" class="color-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700">كحلي</button>
+                        <button onclick="selectColor(this, 'زيتي')" class="color-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700">زيتي</button>
+                        <button onclick="selectColor(this, 'كشمير')" class="color-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700">كشمير</button>
+                    </div>
+                </div>
+
+                <!-- خيارات المقاس -->
+                <div>
+                    <label class="block font-bold text-gray-800 mb-2 text-sm">اختر المقاس:</label>
+                    <div class="flex gap-3" id="size-options">
+                        <button onclick="selectSize(this, 'L')" class="size-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700">L</button>
+                        <button onclick="selectSize(this, 'XL')" class="size-btn border-2 border-teal-600 bg-teal-50 px-4 py-2 rounded-xl text-sm font-bold text-teal-900">XL</button>
+                        <button onclick="selectSize(this, '2XL')" class="size-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700">2XL</button>
+                    </div>
+                </div>
+
+                <!-- تحديد الكمية -->
+                <div>
+                    <label class="block font-bold text-gray-800 mb-2 text-sm">الكمية المطلوبة:</label>
+                    <div class="flex items-center gap-3">
+                        <button onclick="updateQuantity(-1)" class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-lg text-gray-700 flex items-center justify-center border">-</button>
+                        <span id="quantity-display" class="text-xl font-bold px-4">1</span>
+                        <button onclick="updateQuantity(1)" class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 font-bold text-lg text-gray-700 flex items-center justify-center border">+</button>
+                        <span class="text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+                            💡 نصيحة: عند إضافة قطعة ثانية ستحصل على خصم 50 ج إضافي!
+                        </span>
+                    </div>
+                </div>
+
+                <!-- أزرار الطلب والعمليات -->
+                <div class="pt-4 space-y-3">
+                    <button onclick="orderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-3 text-lg">
+                        <i class="fa-brands fa-whatsapp text-2xl"></i>
+                        <span>إرسال الطلب عبر الواتساب مباشرة</span>
+                    </button>
+                    
+                    <div class="text-center text-xs text-gray-500 flex items-center justify-center gap-4 pt-2">
+                        <span><i class="fa-solid fa-truck-fast text-teal-600 ml-1"></i> شحن سريع لجميع المحافظات</span>
+                        <span><i class="fa-solid fa-box-open text-teal-600 ml-1"></i> معاينة قبل الاستلام</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 4. قسم مميزات الخدمة -->
+    <section class="max-w-6xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border text-center space-y-2">
+                <div class="w-12 h-12 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="font-bold text-gray-900">جودة مضمونة</h3>
+                <p class="text-xs text-gray-500">تصنيع مباشر بخامات عالية الجودة ومطابقة للمواصفات</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border text-center space-y-2">
+                <div class="w-12 h-12 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <h3 class="font-bold text-gray-900">الدفع عند الاستلام</h3>
+                <p class="text-xs text-gray-500">لا تتفاد بأي مبالغ مقدمة، افحص منتجك أولاً ثم ادفع</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border text-center space-y-2">
+                <div class="w-12 h-12 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </div>
+                <h3 class="font-bold text-gray-900">استبدال واسترجاع سهل</h3>
+                <p class="text-xs text-gray-500">سياسة استبدال واسترجاع مريحة للعملاء خلال 14 يوماً</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. قسم آراء العملاء -->
+    <section id="reviews-section" class="max-w-6xl mx-auto px-4 py-8">
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">آراء وتقييمات العملاء</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-2xl border space-y-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-800">أميرة م.</span>
+                    <span class="text-xs text-gray-400">منذ يومين</span>
+                </div>
+                <div class="text-amber-400 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-gray-600">"الخامة تحفة جداً وناعمة بجد.. والمقاس مظبوط والخياطة نظيفة جداً. شكراً جزيلاً لسرعة التوصيل."</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border space-y-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-800">هدى العبدالله</span>
+                    <span class="text-xs text-gray-400">منذ 4 أيام</span>
+                </div>
+                <div class="text-amber-400 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-gray-600">"استفدت من عرض الخصم وطلبت قطعتين، الألوان أجميل كمان من الصور في الحقيقة والتقفيل ممتااااز."</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border space-y-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-800">نور ناصر</span>
+                    <span class="text-xs text-gray-400">الأسبوع الماضي</span>
+                </div>
+                <div class="text-amber-400 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-gray-600">"خدمة عملاء محترمة وسريعة في الرد عبر الواتساب واستلمت الأوردر وعاينته قبل ما ادفع."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. الفوتر (أسفل الصفحة) -->
+    <footer id="contact-section" class="bg-gray-900 text-gray-400 mt-12 py-8 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 text-center space-y-4">
+            <div class="flex items-center justify-center gap-2">
+                <span class="bg-teal-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-black">د.ه</span>
+                <div class="text-2xl font-black text-white" id="footer-store-name">دلع الهوانم</div>
+            </div>
+            <p class="text-xs max-w-md mx-auto">متجر متخصص في توفير أفضل تشكيلات الموضة والأزياء بخامات عالية وأسعار تنافسية مباشرة من المصنع.</p>
+
+            <div class="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-sm pt-2">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-teal-500"></i>
+                    المحلة الكبرى - شارع البهلوان
+                </span>
+                <a href="tel:01065852975" class="flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-solid fa-phone text-teal-500"></i>
+                    01065852975
+                </a>
+                <a href="https://wa.me/201065852975" target="_blank" class="flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-brands fa-whatsapp text-teal-500"></i>
+                    واتساب: 01065852975
+                </a>
+            </div>
+
+            <div class="text-xs text-gray-500 pt-4 border-t border-gray-800">
+                جميع الحقوق محفوظة &copy; 2026 - <span id="footer-year-name">دلع الهوانم</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript للتحكم التفاعلي في الأسعار، الخصومات ورابط الواتساب -->
+    <script>
+        // إعدادات المتجر الأساسية (قم بتغييرها هنا)
+        const STORE_CONFIG = {
+            storeName: "دلع الهوانم", // اسم البراند
+            whatsappNumber: "201065852975", // رقم الواتساب بالرمز الدولي (20 لمصر + الرقم بدون الصفر الأول)
+            basePrice: 450, // سعر القطعة الواحدة بعد الخصم الأول
+            originalPricePerPiece: 500, // السعر الأصلي للقطعة قبل أي خصم
+            discountPerExtraPiece: 50 // مقدار الخصم الإضافي مع كل قطعة إضافية
+        };
+
+        // المتغيرات الحالية
+        let quantity = 1;
+        let selectedColor = "أسود";
+        let selectedSize = "XL";
+
+        // تحديث عناصر الصفحة ببيانات المتجر
+        document.title = `${STORE_CONFIG.storeName} - أفضل العروض والخصومات`;
+        document.getElementById('store-name-display').innerText = STORE_CONFIG.storeName;
+        document.getElementById('footer-store-name').innerText = STORE_CONFIG.storeName;
+        document.getElementById('footer-year-name').innerText = STORE_CONFIG.storeName;
+
+        // دالة تغيير الصورة الرئيسية
+        function changeImage(src) {
+            document.getElementById('main-product-img').src = src;
+        }
+
+        // دالة اختيار اللون
+        function selectColor(element, color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.className = 'color-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700';
+            });
+            element.className = 'color-btn border-2 border-teal-600 bg-teal-50 px-4 py-2 rounded-xl text-sm font-bold text-teal-900';
+        }
+
+        // دالة اختيار المقاس
+        function selectSize(element, size) {
+            selectedSize = size;
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.className = 'size-btn border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold text-gray-700';
+            });
+            element.className = 'size-btn border-2 border-teal-600 bg-teal-50 px-4 py-2 rounded-xl text-sm font-bold text-teal-900';
+        }
+
+        // دالة تحديث الكمية وحساب الخصم التلقائي
+        function updateQuantity(change) {
+            quantity += change;
+            if (quantity < 1) quantity = 1;
+
+            document.getElementById('quantity-display').innerText = quantity;
+
+            // حساب الخصم والتوتال
+            // خصم 50 ج عن كل قطعة مضافة (إبتداءً من القطعة الثانية)
+            const extraSavings = (quantity - 1) * STORE_CONFIG.discountPerExtraPiece;
+            const totalOriginalPrice = STORE_CONFIG.originalPricePerPiece * quantity;
+            const totalPrice = (STORE_CONFIG.basePrice * quantity) - extraSavings;
+            const totalSavings = (STORE_CONFIG.originalPricePerPiece - STORE_CONFIG.basePrice) * quantity + extraSavings;
+
+            document.getElementById('final-price').innerText = totalPrice;
+            document.getElementById('original-price').innerText = totalOriginalPrice;
+            document.getElementById('saved-amount').innerText = totalSavings;
+        }
+
+        // دالة إنشاء وإرسال الطلب عبر الواتساب
+        function orderViaWhatsApp() {
+            const totalPrice = document.getElementById('final-price').innerText;
+            const totalSaved = document.getElementById('saved-amount').innerText;
+
+            const message = `مرحباً ${STORE_CONFIG.storeName} 👋%0A` +
+                `أرغب في طلب المنتج التالي:%0A` +
+                `📌 *المنتج:* إسدال فسكوز ساتان%0A` +
+                `🎨 *اللون:* ${selectedColor}%0A` +
+                `📐 *المقاس:* ${selectedSize}%0A` +
+                `🔢 *الكمية:* ${quantity}%0A` +
+                `💰 *الإجمالي:* ${totalPrice} جـ (وفرت ${totalSaved} جـ)%0A%0A` +
+                `يرجى تأكيد الطلب وتحديد بيانات الشحن.`;
+
+            const whatsappUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // زر الهيدر
+        document.getElementById('header-whatsapp-btn').onclick = function(e) {
+            e.preventDefault();
+            orderViaWhatsApp();
+        };
+
+        // التشغيل الأولي للأسعار
+        updateQuantity(0);
+    </script>
+</body>
+</html>
