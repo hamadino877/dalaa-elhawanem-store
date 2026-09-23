@@ -213,6 +213,27 @@
             <div id="cart-summary" class="border-t pt-4 mt-4 space-y-3">
                 <div class="flex justify-between text-sm font-bold"><span>إجمالي الخصم المستحق:</span><span id="cart-discount" class="text-emerald-600">0 ج.م</span></div>
                 <div class="flex justify-between text-lg font-black"><span>المبلغ الإجمالي:</span><span id="cart-total" class="text-rose-700">0 ج.م</span></div>
+
+                <!-- طريقة الدفع -->
+                <div class="space-y-2 pt-1">
+                    <label class="block text-xs font-bold text-gray-700">طريقة الدفع</label>
+                    <div id="payment-methods" class="grid grid-cols-1 gap-2">
+                        <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs cursor-pointer transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+                            <input type="radio" name="payment-method" value="cod" checked onchange="onPaymentMethodChange()" class="accent-rose-600">
+                            <i class="fa-solid fa-sack-dollar text-emerald-600"></i> الدفع عند الاستلام (كاش)
+                        </label>
+                        <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs cursor-pointer transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+                            <input type="radio" name="payment-method" value="vodafone_cash" onchange="onPaymentMethodChange()" class="accent-rose-600">
+                            <i class="fa-solid fa-mobile-screen text-red-600"></i> فودافون كاش
+                        </label>
+                        <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs cursor-pointer transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+                            <input type="radio" name="payment-method" value="instapay" onchange="onPaymentMethodChange()" class="accent-rose-600">
+                            <i class="fa-solid fa-university text-blue-600"></i> إنستاباي (InstaPay)
+                        </label>
+                    </div>
+                    <div id="payment-details" class="hidden bg-rose-50 border border-rose-100 rounded-xl p-3 text-[11px] text-gray-700 space-y-2"></div>
+                </div>
+
                 <div class="space-y-2 pt-2">
                     <input type="text" id="cust-name" placeholder="الاسم بالكامل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
                     <input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
@@ -332,6 +353,12 @@
         // 🔐 كلمة مرور لوحة الإدارة
         const ADMIN_PASSWORD = "123456";
         let isAdminLoggedIn = false;
+
+        // 💳 بيانات طرق الدفع الإلكتروني (حدّثيها من هنا وقت ما تحبي)
+        const PAYMENT_INFO = {
+            vodafone_cash: { label: 'فودافون كاش', number: '01065852975' },
+            instapay: { label: 'إنستاباي (InstaPay)', number: '01065852975' }
+        };
 
         let categoriesList = [];
         let productsList = [];
@@ -875,6 +902,42 @@
             }
         }
 
+        function onPaymentMethodChange() {
+            const selected = document.querySelector('input[name="payment-method"]:checked').value;
+            const box = document.getElementById('payment-details');
+
+            if (selected === 'cod') {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+
+            const info = PAYMENT_INFO[selected];
+            if (!info) { box.classList.add('hidden'); return; }
+
+            if (!info.number) {
+                box.innerHTML = `<p>سيتم تأكيد بيانات الدفع بـ ${escapeHtml(info.label)} معكِ مباشرة عبر الواتساب بعد إرسال الطلب.</p>`;
+                box.classList.remove('hidden');
+                return;
+            }
+
+            box.innerHTML = `
+                <p>حوّلي المبلغ الإجمالي على رقم ${escapeHtml(info.label)} التالي، ثم اضغطي "تأكيد الطلب" وابعتي صورة إيصال التحويل في نفس محادثة الواتساب:</p>
+                <div class="flex items-center justify-between bg-white border rounded-lg px-3 py-2 font-black text-rose-700 text-sm">
+                    <span dir="ltr">${escapeHtml(info.number)}</span>
+                    <button type="button" onclick="copyToClipboard('${escapeHtml(info.number)}')" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-md transition">نسخ الرقم</button>
+                </div>`;
+            box.classList.remove('hidden');
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => toast('تم نسخ الرقم')).catch(() => toast('تعذر النسخ، انسخيه يدوياً', 'error'));
+            } else {
+                toast('تعذر النسخ، انسخيه يدوياً', 'error');
+            }
+        }
+
         function sendOrderWhatsApp() {
             if (cart.length === 0) return toast('السلة فارغة', 'error');
             const name = document.getElementById('cust-name').value.trim();
@@ -886,6 +949,13 @@
             const total = document.getElementById('cart-total').innerText;
             const discount = document.getElementById('cart-discount').innerText;
 
+            const paymentValue = document.querySelector('input[name="payment-method"]:checked').value;
+            let paymentText = 'الدفع عند الاستلام (كاش)';
+            if (paymentValue !== 'cod') {
+                const info = PAYMENT_INFO[paymentValue];
+                paymentText = info.number ? `${info.label} (تم التحويل على ${info.number} - سيتم إرسال إيصال التحويل)` : `${info.label} (سيتم تأكيد التحويل مباشرة)`;
+            }
+
             const message = `مرحباً متجر *دلع الهوانم* 👋%0A` +
                 `طلب جديد من الموقع:%0A%0A` +
                 `👤 *الاسم:* ${encodeURIComponent(name)}%0A` +
@@ -893,7 +963,8 @@
                 `📍 *العنوان:* ${encodeURIComponent(address)}%0A%0A` +
                 `🛍️ *الطلبات:*%0A${itemsText}%0A%0A` +
                 `🎉 *الخصم المستحق:* ${discount}%0A` +
-                `💰 *الإجمالي النهائي:* ${total}`;
+                `💰 *الإجمالي النهائي:* ${total}%0A` +
+                `💳 *طريقة الدفع:* ${encodeURIComponent(paymentText)}`;
 
             window.open(`https://wa.me/201065852975?text=${message}`, '_blank');
         }
