@@ -10,13 +10,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .logo-gradient { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); }
+
+        /* ===== حركات وانيميشن ===== */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spinSlow { to { transform: rotate(360deg); } }
+
+        .anim-fade-in { animation: fadeIn .5s ease both; }
+        .anim-pop-in { animation: popIn .28s cubic-bezier(.2,.9,.3,1.2) both; }
+        .anim-toast-in { animation: toastIn .25s ease both; }
+
+        /* درج السلة المنزلق */
+        #cart-drawer-panel { transform: translateX(100%); transition: transform .32s cubic-bezier(.16,1,.3,1); }
+        #cart-drawer.is-open #cart-drawer-panel { transform: translateX(0); }
+        #cart-drawer, #admin-modal, #confirm-modal { transition: opacity .25s ease; }
+
+        /* بطاقة المنتج */
+        .product-card { transition: transform .25s ease, box-shadow .25s ease; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px -12px rgba(190,18,60,.25); }
+        .product-card img { transition: transform .4s ease; }
+        .product-card:hover img { transform: scale(1.05); }
+
+        /* تبويبات التصنيفات */
+        .cat-pill { transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+        .cat-scroll::-webkit-scrollbar { display: none; }
+        .cat-scroll { scrollbar-width: none; }
+
+        /* زر مع نبضة خفيفة عند الإضافة للسلة */
+        @keyframes addPulse { 0% { transform: scale(1); } 40% { transform: scale(.94); } 100% { transform: scale(1); } }
+        .add-pulse { animation: addPulse .28s ease; }
+
+        .skeleton { background: linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%); background-size: 400% 100%; animation: skeletonShine 1.4s ease infinite; }
+        @keyframes skeletonShine { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+        }
     </style>
 </head>
 <body class="bg-rose-50/30 text-gray-800 min-h-screen flex flex-col">
@@ -38,7 +75,6 @@
     <!-- 2. الهيدر واللوجو ورأس الصفحة -->
     <header class="bg-white shadow-sm border-b sticky top-[36px] z-40">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-            <!-- اللوجو واسم المتجر -->
             <a href="#" class="flex items-center gap-3">
                 <div class="logo-gradient text-white w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-md border-2 border-rose-200">
                     👑
@@ -49,20 +85,24 @@
                 </div>
             </a>
 
-            <!-- أزرار التفاعل -->
             <div class="flex items-center gap-3">
-                <!-- زر لوحة التحكم -->
-                <button onclick="toggleAdminModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition">
+                <button onclick="toggleAdminModal()" class="bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition">
                     <i class="fa-solid fa-lock text-rose-600"></i>
                     <span class="hidden md:inline">لوحة الإدارة</span>
                 </button>
 
-                <!-- زر السلة -->
-                <button onclick="toggleCartDrawer(true)" class="relative bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-rose-100 transition">
+                <button onclick="toggleCartDrawer(true)" class="relative bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-rose-100 active:scale-95 transition">
                     <i class="fa-solid fa-cart-shopping text-lg"></i>
                     <span>السلة</span>
                     <span id="cart-badge" class="bg-rose-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- شريط تصنيفات المنتجات -->
+        <div class="border-t bg-white">
+            <div id="category-tabs" class="max-w-6xl mx-auto px-4 py-2.5 flex gap-2 overflow-x-auto cat-scroll">
+                <!-- التصنيفات تُعرض هنا ديناميكياً -->
             </div>
         </div>
     </header>
@@ -78,20 +118,25 @@
 
     <!-- 4. عرض المنتجات المعروضة من Supabase -->
     <main class="max-w-6xl mx-auto px-4 py-6 flex-grow">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <h2 id="products-heading" class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <i class="fa-solid fa-shirt text-rose-600"></i>
             المنتجات المتاحة حالياً
         </h2>
 
-        <!-- مؤشر التحميل -->
-        <div id="loading-spinner" class="text-center py-12">
-            <i class="fa-solid fa-spinner fa-spin text-3xl text-rose-600"></i>
-            <p class="text-xs text-gray-500 mt-2">جاري جلب أحدث المنتجات من السيرفر...</p>
+        <!-- هيكل تحميل أولي -->
+        <div id="loading-skeleton" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-3xl border border-gray-100 p-4 space-y-3"><div class="skeleton aspect-square rounded-2xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
+            <div class="bg-white rounded-3xl border border-gray-100 p-4 space-y-3"><div class="skeleton aspect-square rounded-2xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
+            <div class="bg-white rounded-3xl border border-gray-100 p-4 space-y-3"><div class="skeleton aspect-square rounded-2xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
         </div>
 
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden">
-            <!-- المنتجات تُعرض هنا ديناميكياً -->
+        <div id="load-error" class="hidden text-center py-12 bg-rose-50 border border-rose-100 rounded-2xl">
+            <i class="fa-solid fa-triangle-exclamation text-3xl text-rose-500 mb-2"></i>
+            <p id="load-error-text" class="text-sm text-rose-700 font-bold"></p>
+            <button onclick="initStore()" class="mt-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">إعادة المحاولة</button>
         </div>
+
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden"></div>
     </main>
 
     <!-- 5. قسم آراء العملاء -->
@@ -136,7 +181,7 @@
                     متجر متخصص في توفير أرقى الملابس والأزياء للنساء بأعلى خامات وأنسب أسعار.
                 </p>
             </div>
-            
+
             <div class="space-y-2 text-xs">
                 <h4 class="font-bold text-sm text-rose-300 mb-3">عنوان المتجر والتواصل</h4>
                 <p><i class="fa-solid fa-location-dot text-rose-500 ml-1"></i> المحلة الكبرى - شارع البهلوان</p>
@@ -146,20 +191,20 @@
 
             <div class="space-y-3">
                 <h4 class="font-bold text-sm text-rose-300">طلب سريع عبر الواتساب</h4>
-                <a href="https://wa.me/201065852975" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition">
+                <a href="https://wa.me/201065852975" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition">
                     <i class="fa-brands fa-whatsapp text-lg"></i> تواصل معنا مباشرة عبر الواتساب
                 </a>
             </div>
         </div>
-        
+
         <div class="text-center text-xs text-gray-500 pt-4">
             جميع الحقوق محفوظة &copy; 2026 - <strong>دلع الهوانم</strong>
         </div>
     </footer>
 
     <!-- 7. درج سلة التسوق الجانبي (Cart Drawer) -->
-    <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden transition-opacity">
-        <div class="bg-white w-full max-w-md h-full mr-auto shadow-2xl flex flex-col p-6 overflow-y-auto">
+    <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
+        <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 bg-white w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4 mb-4">
                 <h3 class="text-lg font-extrabold text-gray-900 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-rose-600"></i> سلة المشتريات</h3>
                 <button onclick="toggleCartDrawer(false)" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
@@ -173,7 +218,7 @@
                     <input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
                     <input type="text" id="cust-address" placeholder="عنوان التوصيل بالتفصيل" class="w-full border p-2.5 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500">
                 </div>
-                <button onclick="sendOrderWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                <button onclick="sendOrderWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
                     <i class="fa-brands fa-whatsapp text-xl"></i> تأكيد الطلب وإرسال عبر الواتساب
                 </button>
             </div>
@@ -181,47 +226,100 @@
     </div>
 
     <!-- 8. نافذة لوحة تحكم الإدارة السحابية المربوطة بـ Supabase -->
-    <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6">
+    <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6 anim-pop-in">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-xl font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-sliders text-rose-600"></i> لوحة إدارة متجر (دلع الهوانم)</h3>
                 <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
             </div>
 
-            <!-- نموذج إضافة منتج جديد ورفع الصورة مباشرة لـ Supabase -->
-            <form id="add-product-form" onsubmit="handleAddProduct(event)" class="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 space-y-3">
-                <h4 class="font-bold text-rose-800 text-sm">إضافة منتج جديد وتخزينه في Supabase</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input type="text" id="p-title" placeholder="اسم المنتج (مثال: إسدال فسكوز ساتان)" required class="border p-2 rounded-xl text-xs">
-                    
-                    <!-- رفع الصورة من الاستوديو أو الجهاز -->
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-600 mb-1">اختر صورة المنتج من الجهاز:</label>
-                        <input type="file" id="p-image-file" accept="image/*" required class="border p-1.5 rounded-xl text-xs w-full bg-white">
+            <!-- تبويبات لوحة الإدارة -->
+            <div class="flex gap-2 border-b">
+                <button id="admin-tab-btn-products" onclick="switchAdminTab('products')" class="px-4 py-2 text-xs font-bold border-b-2 border-rose-600 text-rose-700">المنتجات</button>
+                <button id="admin-tab-btn-categories" onclick="switchAdminTab('categories')" class="px-4 py-2 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700">التصنيفات</button>
+            </div>
+
+            <!-- ===== تبويب المنتجات ===== -->
+            <div id="admin-tab-products" class="space-y-6">
+                <form id="add-product-form" onsubmit="handleProductFormSubmit(event)" class="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 id="product-form-title" class="font-bold text-rose-800 text-sm">إضافة منتج جديد وتخزينه في Supabase</h4>
+                        <button type="button" id="cancel-edit-btn" onclick="cancelEditProduct()" class="hidden text-[11px] font-bold text-gray-500 hover:text-gray-700">إلغاء التعديل</button>
                     </div>
+                    <input type="hidden" id="p-edit-id" value="">
+                    <input type="hidden" id="p-existing-image" value="">
 
-                    <input type="number" id="p-price" placeholder="السعر بعد الخصم (ج.م)" required class="border p-2 rounded-xl text-xs">
-                    <input type="number" id="p-old-price" placeholder="السعر الأصلي قبل الخصم (ج.م)" class="border p-2 rounded-xl text-xs">
-                </div>
-                <textarea id="p-desc" placeholder="وصف قصير للمنتج والخامة..." class="w-full border p-2 rounded-xl text-xs" rows="2"></textarea>
-                
-                <div class="flex justify-between items-center">
-                    <select id="p-status" class="border p-2 rounded-xl text-xs font-bold">
-                        <option value="available">متوفر بالمعرض</option>
-                        <option value="out">نفدت الكمية</option>
-                    </select>
-                    <button type="submit" id="submit-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <span>حفظ ونشر على Supabase</span>
-                    </button>
-                </div>
-            </form>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" id="p-title" placeholder="اسم المنتج (مثال: إسدال فسكوز ساتان)" required class="border p-2 rounded-xl text-xs">
 
-            <div class="space-y-3">
-                <h4 class="font-bold text-gray-800 text-sm">المنتجات المنشورة حالياً:</h4>
-                <div id="admin-products-list" class="space-y-2"></div>
+                        <select id="p-category" required class="border p-2 rounded-xl text-xs bg-white">
+                            <option value="">اختر التصنيف</option>
+                        </select>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">صورة المنتج:</label>
+                            <input type="file" id="p-image-file" accept="image/*" onchange="previewProductImage(event)" class="border p-1.5 rounded-xl text-xs w-full bg-white">
+                            <div id="image-preview-wrap" class="mt-2 hidden">
+                                <img id="image-preview" class="w-16 h-16 object-cover rounded-lg border">
+                            </div>
+                            <p id="image-hint" class="text-[10px] text-gray-400 mt-1 hidden">اترك هذا الحقل فارغاً إذا كنت لا تريد تغيير الصورة الحالية.</p>
+                        </div>
+
+                        <input type="number" id="p-price" placeholder="السعر بعد الخصم (ج.م)" required min="0" step="0.01" class="border p-2 rounded-xl text-xs">
+                        <input type="number" id="p-old-price" placeholder="السعر الأصلي قبل الخصم (ج.م)" min="0" step="0.01" class="border p-2 rounded-xl text-xs">
+                    </div>
+                    <textarea id="p-desc" placeholder="وصف قصير للمنتج والخامة..." class="w-full border p-2 rounded-xl text-xs" rows="2"></textarea>
+
+                    <div class="flex justify-between items-center">
+                        <select id="p-status" class="border p-2 rounded-xl text-xs font-bold">
+                            <option value="available">متوفر بالمعرض</option>
+                            <option value="out">نفدت الكمية</option>
+                        </select>
+                        <button type="submit" id="submit-btn" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-6 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                            <span id="submit-btn-text">حفظ ونشر على Supabase</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="space-y-3">
+                    <h4 class="font-bold text-gray-800 text-sm">المنتجات المنشورة حالياً:</h4>
+                    <div id="admin-products-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- ===== تبويب التصنيفات ===== -->
+            <div id="admin-tab-categories" class="space-y-6 hidden">
+                <form id="add-category-form" onsubmit="handleAddCategory(event)" class="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 space-y-3">
+                    <h4 class="font-bold text-rose-800 text-sm">إضافة تصنيف جديد</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_100px_auto] gap-3">
+                        <input type="text" id="c-name" placeholder="اسم التصنيف (مثال: إسدالات ملابس بيتي)" required class="border p-2 rounded-xl text-xs">
+                        <input type="text" id="c-icon" placeholder="إيموجي (اختياري) 🏠" maxlength="4" class="border p-2 rounded-xl text-xs text-center">
+                        <button type="submit" class="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold px-5 py-2 rounded-xl text-xs transition whitespace-nowrap">إضافة</button>
+                    </div>
+                </form>
+
+                <div class="space-y-3">
+                    <h4 class="font-bold text-gray-800 text-sm">التصنيفات الحالية:</h4>
+                    <div id="admin-categories-list" class="space-y-2"></div>
+                    <p id="no-categories-hint" class="hidden text-[11px] text-gray-400">لا توجد تصنيفات بعد. أضيفي أول تصنيف من الأعلى.</p>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- 9. نافذة تأكيد عامة (بدل confirm/alert الافتراضية) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 anim-pop-in text-center">
+            <p id="confirm-modal-text" class="text-sm font-bold text-gray-800"></p>
+            <div class="flex gap-2">
+                <button id="confirm-modal-cancel" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition">إلغاء</button>
+                <button id="confirm-modal-ok" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. حاوية التنبيهات (Toasts) -->
+    <div id="toast-container" class="fixed bottom-4 inset-x-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
     <!-- JavaScript البرمجي وربط Supabase -->
     <script>
@@ -229,56 +327,166 @@
         const SUPABASE_URL = "https://niuxwiuaiqahnkptlysm.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdXh3aXVhaXFhaG5rcHRseXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTcwOTQsImV4cCI6MjEwNTIzMzA5NH0.efj-duLJhE1xcvaVeFjzcGYGPAEgQJ87nrPp9V10__w";
 
-        // تهيئة عميل Supabase
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // 🔐 كلمة مرور لوحة الإدارة
-        const ADMIN_PASSWORD = "123456"; 
+        const ADMIN_PASSWORD = "123456";
         let isAdminLoggedIn = false;
+
+        let categoriesList = [];
         let productsList = [];
         let cart = [];
+        let activeCategoryId = 'all';
+        let categoriesTableMissing = false;
 
-        // تحميل المنتجات عند فتح الصفحة
-        async function fetchProducts() {
+        // ===================== أدوات مساعدة عامة =====================
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function toast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-emerald-600',
+                error: 'bg-rose-600',
+                info: 'bg-gray-800'
+            };
+            const el = document.createElement('div');
+            el.className = `anim-toast-in pointer-events-auto ${colors[type] || colors.info} text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg max-w-xs text-center`;
+            el.textContent = message;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.transition = 'opacity .25s ease';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 260);
+            }, 2600);
+        }
+
+        function showConfirm(message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirm-modal');
+                document.getElementById('confirm-modal-text').textContent = message;
+                const okBtn = document.getElementById('confirm-modal-ok');
+                const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+                const cleanup = (result) => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('opacity-100');
+                    okBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    resolve(result);
+                };
+
+                okBtn.onclick = () => cleanup(true);
+                cancelBtn.onclick = () => cleanup(false);
+                modal.classList.remove('hidden');
+                requestAnimationFrame(() => modal.classList.add('opacity-100'));
+            });
+        }
+
+        // ===================== تحميل بيانات المتجر =====================
+        async function initStore() {
+            document.getElementById('load-error').classList.add('hidden');
+            document.getElementById('loading-skeleton').classList.remove('hidden');
+            document.getElementById('products-grid').classList.add('hidden');
+            await fetchCategories();
+            await fetchProducts();
+        }
+
+        async function fetchCategories() {
             try {
                 const { data, error } = await _supabase
-                    .from('products')
+                    .from('categories')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('sort_order', { ascending: true });
 
+                if (error) throw error;
+                categoriesList = data || [];
+                categoriesTableMissing = false;
+            } catch (err) {
+                // في حالة عدم وجود جدول التصنيفات بعد (لم يتم تشغيل ملف SQL المرفق)
+                console.error('خطأ في جلب التصنيفات:', err);
+                categoriesList = [];
+                categoriesTableMissing = true;
+            }
+            renderCategoryTabs();
+            populateCategorySelect();
+        }
+
+        async function fetchProducts() {
+            try {
+                let query = _supabase.from('products').select('*').order('created_at', { ascending: false });
+                const { data, error } = await query;
                 if (error) throw error;
 
                 productsList = data || [];
-                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('loading-skeleton').classList.add('hidden');
                 document.getElementById('products-grid').classList.remove('hidden');
                 renderProducts();
-                if (isAdminLoggedIn) renderAdminProducts();
+                if (isAdminLoggedIn) { renderAdminProducts(); renderAdminCategories(); }
             } catch (err) {
-                console.error("خطأ في جلب المنتجات:", err);
-                document.getElementById('loading-spinner').innerHTML = `
-                    <p class="text-rose-600 font-bold text-sm">حدث خطأ في الاتصال بالسيرفر: ${err.message || err}</p>
-                `;
+                console.error('خطأ في جلب المنتجات:', err);
+                document.getElementById('loading-skeleton').classList.add('hidden');
+                const errBox = document.getElementById('load-error');
+                document.getElementById('load-error-text').textContent = 'حدث خطأ في الاتصال بالسيرفر: ' + (err.message || err);
+                errBox.classList.remove('hidden');
             }
         }
 
-        // عرض المنتجات للعملاء
+        // ===================== التصنيفات (عرض للعملاء) =====================
+        function renderCategoryTabs() {
+            const wrap = document.getElementById('category-tabs');
+            const allBtn = `
+                <button onclick="selectCategory('all')" class="cat-pill shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border ${activeCategoryId === 'all' ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-rose-300'}">
+                    🛍️ الكل
+                </button>`;
+
+            const catBtns = categoriesList.map(c => `
+                <button onclick="selectCategory(${c.id})" class="cat-pill shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border ${activeCategoryId === c.id ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-rose-300'}">
+                    ${escapeHtml(c.icon || '👗')} ${escapeHtml(c.name)}
+                </button>`).join('');
+
+            wrap.innerHTML = allBtn + catBtns;
+        }
+
+        function selectCategory(id) {
+            activeCategoryId = id;
+            renderCategoryTabs();
+            renderProducts();
+            document.getElementById('products-heading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ===================== عرض المنتجات للعملاء =====================
         function renderProducts() {
             const grid = document.getElementById('products-grid');
+            const heading = document.getElementById('products-heading');
 
-            if (productsList.length === 0) {
-                grid.innerHTML = `<p class="col-span-3 text-center text-gray-400 py-8">لا توجد منتجات معروضة حالياً. أضف منتجات جديدة من لوحة الإدارة.</p>`;
+            let filtered = productsList;
+            if (activeCategoryId !== 'all') {
+                filtered = productsList.filter(p => p.category_id === activeCategoryId);
+            }
+
+            if (activeCategoryId === 'all') {
+                heading.innerHTML = `<i class="fa-solid fa-shirt text-rose-600"></i> المنتجات المتاحة حالياً`;
+            } else {
+                const cat = categoriesList.find(c => c.id === activeCategoryId);
+                heading.innerHTML = `<i class="fa-solid fa-shirt text-rose-600"></i> ${escapeHtml(cat ? cat.name : 'تصنيف')}`;
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">لا توجد منتجات معروضة في هذا القسم حالياً.</p>`;
                 return;
             }
 
-            grid.innerHTML = productsList.map(p => `
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition p-4 flex flex-col justify-between space-y-3">
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card anim-fade-in bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="space-y-3">
                         <div class="relative aspect-square rounded-2xl overflow-hidden bg-gray-50">
-                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover">
+                            <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" class="w-full h-full object-cover" loading="lazy">
                             ${p.old_price ? `<span class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
                         </div>
-                        <h3 class="font-black text-gray-900 text-base leading-snug">${p.title}</h3>
-                        <p class="text-gray-500 text-xs line-clamp-2">${p.desc || ''}</p>
+                        <h3 class="font-black text-gray-900 text-base leading-snug">${escapeHtml(p.title)}</h3>
+                        <p class="text-gray-500 text-xs line-clamp-2">${escapeHtml(p.desc || '')}</p>
                     </div>
                     <div class="space-y-3 pt-2 border-t border-gray-50">
                         <div class="flex items-baseline justify-between">
@@ -286,7 +494,7 @@
                             ${p.old_price ? `<span class="text-xs text-gray-400 line-through">${p.old_price} ج.م</span>` : ''}
                         </div>
                         ${p.status === 'available' ? `
-                            <button onclick="addToCart(${p.id})" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <button onclick="addToCart(${p.id}, event)" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-cart-plus"></i> إضافة للسلة
                             </button>
                         ` : `
@@ -297,20 +505,18 @@
             `).join('');
         }
 
-        // رفع الصورة مباشرة إلى حافظة Supabase Storage
+        // ===================== رفع صورة المنتج =====================
         async function uploadProductImage(file) {
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}.${fileExt}`;
             const filePath = `products/${fileName}`;
 
-            // رفع الملف إلى الهاندر (product-images)
-            const { data, error } = await _supabase.storage
+            const { error } = await _supabase.storage
                 .from('product-images')
                 .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
             if (error) throw error;
 
-            // جلب الرابط العمومي المباشر للصورة
             const { data: publicUrlData } = _supabase.storage
                 .from('product-images')
                 .getPublicUrl(filePath);
@@ -318,121 +524,300 @@
             return publicUrlData.publicUrl;
         }
 
-        // إضافة منتج جديد إلى قاعدة بيانات Supabase
-        async function handleAddProduct(e) {
+        function previewProductImage(e) {
+            const file = e.target.files[0];
+            const wrap = document.getElementById('image-preview-wrap');
+            if (!file) { wrap.classList.add('hidden'); return; }
+            const img = document.getElementById('image-preview');
+            img.src = URL.createObjectURL(file);
+            wrap.classList.remove('hidden');
+        }
+
+        // ===================== إضافة / تعديل منتج =====================
+        async function handleProductFormSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+            const btnText = document.getElementById('submit-btn-text');
             const fileInput = document.getElementById('p-image-file');
+            const editId = document.getElementById('p-edit-id').value;
+            const existingImage = document.getElementById('p-existing-image').value;
 
-            if (!fileInput.files[0]) {
-                alert("يرجى اختيار صورة للمنتج من جهازك!");
-                return;
-            }
+            const title = document.getElementById('p-title').value.trim();
+            const price = Number(document.getElementById('p-price').value);
+            const oldPriceRaw = document.getElementById('p-old-price').value;
+            const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
+            const categoryId = document.getElementById('p-category').value;
+            const desc = document.getElementById('p-desc').value.trim();
+            const status = document.getElementById('p-status').value;
+
+            if (!categoryId) { toast('يرجى اختيار تصنيف للمنتج', 'error'); return; }
+            if (oldPrice && oldPrice <= price) { toast('السعر الأصلي يجب أن يكون أكبر من السعر بعد الخصم', 'error'); return; }
+            if (!editId && !fileInput.files[0]) { toast('يرجى اختيار صورة للمنتج', 'error'); return; }
 
             try {
                 btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الصورة وحفظ المنتج...`;
+                btnText.textContent = 'جاري الحفظ...';
 
-                // 1. رفع الصورة إلى Supabase Storage
-                const imageUrl = await uploadProductImage(fileInput.files[0]);
+                let imageUrl = existingImage;
+                if (fileInput.files[0]) {
+                    imageUrl = await uploadProductImage(fileInput.files[0]);
+                }
 
-                // 2. إدخال بيانات المنتج في جدول (products)
-                const { error } = await _supabase
-                    .from('products')
-                    .insert([{
-                        title: document.getElementById('p-title').value,
-                        price: Number(document.getElementById('p-price').value),
-                        old_price: Number(document.getElementById('p-old-price').value) || null,
-                        desc: document.getElementById('p-desc').value,
-                        image: imageUrl,
-                        status: document.getElementById('p-status').value
-                    }]);
+                const payload = {
+                    title,
+                    price,
+                    old_price: oldPrice,
+                    desc,
+                    image: imageUrl,
+                    status,
+                    category_id: Number(categoryId)
+                };
 
-                if (error) throw error;
+                if (editId) {
+                    const { error } = await _supabase.from('products').update(payload).eq('id', editId);
+                    if (error) throw error;
+                    toast('تم تحديث المنتج بنجاح 🎉');
+                } else {
+                    const { error } = await _supabase.from('products').insert([payload]);
+                    if (error) throw error;
+                    toast('تم نشر المنتج بنجاح 🎉');
+                }
 
-                alert("🎉 تم نشر المنتج ورفع الصورة بنجاح على Supabase!");
-                document.getElementById('add-product-form').reset();
-                fetchProducts(); // إعادة جلب المنتجات المحدثة
+                resetProductForm();
+                await fetchProducts();
             } catch (err) {
-                alert("حدث خطأ أثناء الإضافة: " + err.message);
+                toast('حدث خطأ أثناء الحفظ: ' + (err.message || err), 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `حفظ ونشر على Supabase`;
+                btnText.textContent = editId ? 'تحديث المنتج' : 'حفظ ونشر على Supabase';
             }
         }
 
-        // تغيير حالة المنتج (متوفر / نفدت الكمية)
+        function resetProductForm() {
+            document.getElementById('add-product-form').reset();
+            document.getElementById('p-edit-id').value = '';
+            document.getElementById('p-existing-image').value = '';
+            document.getElementById('image-preview-wrap').classList.add('hidden');
+            document.getElementById('image-hint').classList.add('hidden');
+            document.getElementById('product-form-title').textContent = 'إضافة منتج جديد وتخزينه في Supabase';
+            document.getElementById('submit-btn-text').textContent = 'حفظ ونشر على Supabase';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
+        function startEditProduct(id) {
+            const p = productsList.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('p-edit-id').value = p.id;
+            document.getElementById('p-existing-image').value = p.image;
+            document.getElementById('p-title').value = p.title;
+            document.getElementById('p-price').value = p.price;
+            document.getElementById('p-old-price').value = p.old_price || '';
+            document.getElementById('p-desc').value = p.desc || '';
+            document.getElementById('p-status').value = p.status;
+            document.getElementById('p-category').value = p.category_id || '';
+
+            const preview = document.getElementById('image-preview');
+            preview.src = p.image;
+            document.getElementById('image-preview-wrap').classList.remove('hidden');
+            document.getElementById('image-hint').classList.remove('hidden');
+
+            document.getElementById('product-form-title').textContent = 'تعديل المنتج: ' + p.title;
+            document.getElementById('submit-btn-text').textContent = 'تحديث المنتج';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            switchAdminTab('products');
+            document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function cancelEditProduct() {
+            resetProductForm();
+        }
+
         async function toggleProductStatus(id, currentStatus) {
             const newStatus = currentStatus === 'available' ? 'out' : 'available';
-            const { error } = await _supabase
-                .from('products')
-                .update({ status: newStatus })
-                .eq('id', id);
-
-            if (error) alert("حدث خطأ أثناء التحديث");
-            else fetchProducts();
+            const { error } = await _supabase.from('products').update({ status: newStatus }).eq('id', id);
+            if (error) toast('حدث خطأ أثناء التحديث', 'error');
+            else { toast('تم تحديث حالة المنتج'); fetchProducts(); }
         }
 
-        // حذف منتج من Supabase
-        async function deleteProduct(id) {
-            if (confirm("هل أنت متاكد من حذف هذا المنتج نهائياً من المتجر؟")) {
-                const { error } = await _supabase
-                    .from('products')
-                    .delete()
-                    .eq('id', id);
+        async function deleteProduct(id, title) {
+            const confirmed = await showConfirm(`هل أنت متأكدة من حذف "${title}" نهائياً من المتجر؟`);
+            if (!confirmed) return;
+            const { error } = await _supabase.from('products').delete().eq('id', id);
+            if (error) toast('حدث خطأ أثناء الحذف', 'error');
+            else { toast('تم حذف المنتج'); if (Number(document.getElementById('p-edit-id').value) === id) resetProductForm(); fetchProducts(); }
+        }
 
-                if (error) alert("حدث خطأ أثناء الحذف");
-                else fetchProducts();
+        // ===================== التصنيفات (إدارة) =====================
+        function populateCategorySelect() {
+            const select = document.getElementById('p-category');
+            const current = select.value;
+            select.innerHTML = '<option value="">اختر التصنيف</option>' +
+                categoriesList.map(c => `<option value="${c.id}">${escapeHtml(c.icon || '👗')} ${escapeHtml(c.name)}</option>`).join('');
+            if (current) select.value = current;
+        }
+
+        async function handleAddCategory(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('c-name');
+            const iconInput = document.getElementById('c-icon');
+            const name = nameInput.value.trim();
+            const icon = iconInput.value.trim() || '👗';
+            if (!name) return;
+
+            try {
+                const { error } = await _supabase.from('categories').insert([{ name, icon, sort_order: categoriesList.length }]);
+                if (error) throw error;
+                toast('تم إضافة التصنيف بنجاح 🎉');
+                document.getElementById('add-category-form').reset();
+                await fetchCategories();
+                renderAdminCategories();
+            } catch (err) {
+                if (categoriesTableMissing) {
+                    toast('جدول التصنيفات غير موجود بعد. شغّلي ملف supabase_migration.sql في محرر SQL بمشروع Supabase أولاً.', 'error');
+                } else {
+                    toast('حدث خطأ أثناء إضافة التصنيف: ' + (err.message || err), 'error');
+                }
             }
         }
 
-        // إدارة لوحة التحكم بكلمة سر
-        function toggleAdminModal() {
-            if (!isAdminLoggedIn) {
-                const pass = prompt("🔐 أدخل كلمة السر الخاصة بمدير متجر دلع الهوانم:");
-                if (pass === ADMIN_PASSWORD) {
-                    isAdminLoggedIn = true;
-                } else if (pass !== null) {
-                    alert("❌ كلمة السر غير صحيحة!");
-                    return;
-                } else return;
+        async function deleteCategory(id, name) {
+            const inUse = productsList.filter(p => p.category_id === id).length;
+            const msg = inUse > 0
+                ? `يوجد ${inUse} منتج مرتبط بتصنيف "${name}". سيتم حذف التصنيف وتصبح هذه المنتجات بدون تصنيف. هل تريدين المتابعة؟`
+                : `هل تريدين حذف تصنيف "${name}"؟`;
+            const confirmed = await showConfirm(msg);
+            if (!confirmed) return;
+
+            const { error } = await _supabase.from('categories').delete().eq('id', id);
+            if (error) toast('حدث خطأ أثناء الحذف: ' + (error.message || error), 'error');
+            else {
+                toast('تم حذف التصنيف');
+                if (activeCategoryId === id) activeCategoryId = 'all';
+                await fetchCategories();
+                await fetchProducts();
+                renderAdminCategories();
             }
-            document.getElementById('admin-modal').classList.remove('hidden');
-            renderAdminProducts();
         }
 
-        function closeAdminModal() {
-            document.getElementById('admin-modal').classList.add('hidden');
+        function renderAdminCategories() {
+            const container = document.getElementById('admin-categories-list');
+            const hint = document.getElementById('no-categories-hint');
+
+            if (categoriesTableMissing) {
+                container.innerHTML = '';
+                hint.textContent = 'جدول التصنيفات غير موجود بعد في قاعدة البيانات. شغّلي ملف supabase_migration.sql المرفق في محرر SQL الخاص بمشروع Supabase، ثم أعيدي فتح لوحة الإدارة.';
+                hint.classList.remove('hidden');
+                return;
+            }
+
+            if (categoriesList.length === 0) {
+                container.innerHTML = '';
+                hint.textContent = 'لا توجد تصنيفات بعد. أضيفي أول تصنيف من الأعلى.';
+                hint.classList.remove('hidden');
+                return;
+            }
+            hint.classList.add('hidden');
+
+            container.innerHTML = categoriesList.map(c => {
+                const count = productsList.filter(p => p.category_id === c.id).length;
+                return `
+                <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">${escapeHtml(c.icon || '👗')}</span>
+                        <div>
+                            <span class="font-bold block">${escapeHtml(c.name)}</span>
+                            <span class="text-gray-500">${count} منتج</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
+                </div>`;
+            }).join('');
         }
 
         function renderAdminProducts() {
             const container = document.getElementById('admin-products-list');
+            if (productsList.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 text-xs py-6">لا توجد منتجات بعد.</p>`;
+                return;
+            }
 
-            container.innerHTML = productsList.map(p => `
-                <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs">
-                    <div class="flex items-center gap-3">
-                        <img src="${p.image}" class="w-10 h-10 object-cover rounded-lg">
-                        <div>
-                            <span class="font-bold block">${p.title}</span>
-                            <span class="text-gray-500">${p.price} ج.م - (${p.status === 'available' ? 'متوفر' : 'منتهي'})</span>
+            container.innerHTML = productsList.map(p => {
+                const cat = categoriesList.find(c => c.id === p.category_id);
+                return `
+                <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs gap-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded-lg shrink-0">
+                        <div class="min-w-0">
+                            <span class="font-bold block truncate">${escapeHtml(p.title)}</span>
+                            <span class="text-gray-500 block truncate">${p.price} ج.م - (${p.status === 'available' ? 'متوفر' : 'منتهي'}) ${cat ? '- ' + escapeHtml(cat.name) : ''}</span>
                         </div>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex gap-1.5 shrink-0">
+                        <button onclick="startEditProduct(${p.id})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[10px] font-bold">تعديل</button>
                         <button onclick="toggleProductStatus(${p.id}, '${p.status}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold">تغيير الحالة</button>
-                        <button onclick="deleteProduct(${p.id})" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
+                        <button onclick="deleteProduct(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
-        // إدارة السلة والطلبات عبر الواتساب (01065852975)
-        function addToCart(id) {
+        // ===================== لوحة الإدارة: فتح/غلق وتبويبات =====================
+        function toggleAdminModal() {
+            if (!isAdminLoggedIn) {
+                const pass = prompt('🔐 أدخل كلمة السر الخاصة بمدير متجر دلع الهوانم:');
+                if (pass === ADMIN_PASSWORD) {
+                    isAdminLoggedIn = true;
+                } else if (pass !== null) {
+                    toast('كلمة السر غير صحيحة', 'error');
+                    return;
+                } else return;
+            }
+            const modal = document.getElementById('admin-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('opacity-100'));
+            renderAdminProducts();
+            renderAdminCategories();
+        }
+
+        function closeAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('opacity-100');
+        }
+
+        function switchAdminTab(tab) {
+            const tabs = ['products', 'categories'];
+            tabs.forEach(t => {
+                document.getElementById('admin-tab-' + t).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById('admin-tab-btn-' + t);
+                if (t === tab) {
+                    btn.classList.add('border-rose-600', 'text-rose-700');
+                    btn.classList.remove('border-transparent', 'text-gray-500');
+                } else {
+                    btn.classList.remove('border-rose-600', 'text-rose-700');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+        }
+
+        // ===================== السلة والطلبات عبر الواتساب =====================
+        function addToCart(id, evt) {
             const p = productsList.find(item => item.id === id);
+            if (!p) return;
             const inCart = cart.find(item => item.id === id);
             if (inCart) inCart.qty++;
             else cart.push({ id: p.id, title: p.title, price: p.price, image: p.image, qty: 1 });
+
             updateCartUI();
             toggleCartDrawer(true);
+            toast(`تمت إضافة "${p.title}" للسلة`);
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('add-pulse');
+                setTimeout(() => evt.currentTarget.classList.remove('add-pulse'), 300);
+            }
         }
 
         function updateCartUI() {
@@ -451,12 +836,12 @@
                 totalQty += i.qty;
                 return `
                     <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                        <img src="${i.image}" class="w-14 h-14 object-cover rounded-xl">
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-xs text-gray-900">${i.title}</h4>
+                        <img src="${escapeHtml(i.image)}" class="w-14 h-14 object-cover rounded-xl">
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-bold text-xs text-gray-900 truncate">${escapeHtml(i.title)}</h4>
                             <span class="text-xs text-rose-600 font-black">${i.price} ج.م</span>
                         </div>
-                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border">
+                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border shrink-0">
                             <button onclick="changeQty(${i.id}, -1)" class="text-xs font-bold px-1 text-gray-600">-</button>
                             <span class="text-xs font-bold">${i.qty}</span>
                             <button onclick="changeQty(${i.id}, 1)" class="text-xs font-bold px-1 text-gray-600">+</button>
@@ -481,16 +866,21 @@
 
         function toggleCartDrawer(show) {
             const drawer = document.getElementById('cart-drawer');
-            if (show) drawer.classList.remove('hidden');
-            else drawer.classList.add('hidden');
+            if (show) {
+                drawer.classList.remove('hidden');
+                requestAnimationFrame(() => { drawer.classList.add('opacity-100', 'is-open'); });
+            } else {
+                drawer.classList.remove('opacity-100', 'is-open');
+                setTimeout(() => drawer.classList.add('hidden'), 320);
+            }
         }
 
         function sendOrderWhatsApp() {
-            if (cart.length === 0) return alert('السلة فارغة!');
+            if (cart.length === 0) return toast('السلة فارغة', 'error');
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
             const address = document.getElementById('cust-address').value.trim();
-            if (!name || !phone || !address) return alert('يرجى ملء كافة البيانات للتأكيد!');
+            if (!name || !phone || !address) return toast('يرجى ملء كافة البيانات للتأكيد', 'error');
 
             const itemsText = cart.map(i => `▪️ ${i.title} (الكمية: ${i.qty}) - السعر: ${i.price * i.qty} ج`).join('%0A');
             const total = document.getElementById('cart-total').innerText;
@@ -498,9 +888,9 @@
 
             const message = `مرحباً متجر *دلع الهوانم* 👋%0A` +
                 `طلب جديد من الموقع:%0A%0A` +
-                `👤 *الاسم:* ${name}%0A` +
-                `📱 *الهاتف:* ${phone}%0A` +
-                `📍 *العنوان:* ${address}%0A%0A` +
+                `👤 *الاسم:* ${encodeURIComponent(name)}%0A` +
+                `📱 *الهاتف:* ${encodeURIComponent(phone)}%0A` +
+                `📍 *العنوان:* ${encodeURIComponent(address)}%0A%0A` +
                 `🛍️ *الطلبات:*%0A${itemsText}%0A%0A` +
                 `🎉 *الخصم المستحق:* ${discount}%0A` +
                 `💰 *الإجمالي النهائي:* ${total}`;
@@ -509,7 +899,7 @@
         }
 
         // بداية التشغيل
-        fetchProducts();
+        initStore();
     </script>
 </body>
 </html>
