@@ -1,167 +1,346 @@
+cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دلع الهوانم - أحدث صيحات الموضة والأناقة</title>
-    <!-- Tailwind CSS -->
+    <title>دلع الهوانم - أزياء نسائية راقية</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts (Cairo) -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    
-<body>
-<div class="announcement"><div><span>NEW SEASON</span> تشكيلات جديدة تصل تباعاً — أناقة مختارة بعناية</div><button onclick="scrollToProducts()">تسوقي المجموعة <i class="fa-solid fa-arrow-left"></i></button></div>
-
-<header class="site-header">
-  <div class="header-main">
-    <a class="brand" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
-      <div class="brand-mark">DH</div><div><strong>دلع الهوانم</strong><small>FASHION &amp; STYLE</small></div>
-    </a>
-    <nav class="desktop-nav"><a href="#home">الرئيسية</a><a href="#collections">التشكيلات</a><a href="#products">المنتجات</a><a href="#about">عن دلع الهوانم</a></nav>
-    <div class="header-actions">
-      <button class="icon-action" onclick="showWishlistOnly()" aria-label="المفضلة"><i class="fa-regular fa-heart"></i><b id="wishlist-count">0</b></button>
-      <button class="cart-action" onclick="toggleCartDrawer(true)"><i class="fa-solid fa-bag-shopping"></i><span>السلة</span><b id="cart-badge">0</b></button>
-      <button class="admin-link" onclick="toggleAdminModal()"><i class="fa-solid fa-lock"></i></button>
+    <style>
+        :root {
+            --paper: #FAF5EE;
+            --surface: #FFFFFF;
+            --ink: #2A211D;
+            --ink-muted: #7A6C63;
+            --rosewood: #8C4A50;
+            --rosewood-deep: #6B3539;
+            --gold: #AD8A55;
+            --gold-soft: #E3D5BC;
+            --sand: #F1E7D9;
+            --line: #E6DACB;
+        }
+        body { font-family: 'Cairo', sans-serif; background: var(--paper); color: var(--ink); }
+        .font-display { font-family: 'El Messiri', 'Cairo', sans-serif; }
+        .divider-gold { height: 1px; background: var(--gold); opacity: .55; }
+        .btn-primary { background: var(--rosewood); color: #fff; transition: background-color .2s ease; }
+        .btn-primary:hover { background: var(--rosewood-deep); }
+        .btn-primary:disabled { background: var(--line); color: var(--ink-muted); cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); transition: border-color .2s ease, background-color .2s ease; }
+        .btn-outline:hover { border-color: var(--rosewood); background: var(--surface); }
+        .card { background: var(--surface); border: 1px solid var(--line); }
+        .monogram { width: 46px; height: 46px; border: 1.5px solid var(--ink); border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-family: 'El Messiri', serif; font-weight: 700; font-size: 20px; color: var(--ink); flex-shrink: 0; }
+        .tab-pill { color: var(--ink-muted); border-bottom: 2px solid transparent; transition: color .2s ease, border-color .2s ease; }
+        .tab-pill.is-active { color: var(--ink); border-color: var(--gold); }
+        .tab-scroll::-webkit-scrollbar { display: none; }
+        .tab-scroll { scrollbar-width: none; }
+        .product-card img { transition: transform .5s ease; }
+        .product-card:hover img { transform: scale(1.04); }
+        .tag-sale { border: 1px solid var(--gold); color: var(--ink); background: rgba(255,255,255,.92); }
+        @keyframes heroIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hero-reveal { animation: heroIn .6s cubic-bezier(.2,.7,.2,1) both; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-pop-in { animation: popIn .25s cubic-bezier(.2,.8,.3,1.1) both; }
+        .anim-toast-in { animation: toastIn .25s ease both; }
+        #cart-drawer-panel { transform: translateX(100%); transition: transform .32s cubic-bezier(.16,1,.3,1); }
+        #cart-drawer.is-open #cart-drawer-panel { transform: translateX(0); }
+        #cart-drawer, #admin-modal, #confirm-modal { transition: opacity .25s ease; }
+        @keyframes addPulse { 0% { transform: scale(1); } 40% { transform: scale(.95); } 100% { transform: scale(1); } }
+        .add-pulse { animation: addPulse .28s ease; }
+        .skeleton { background: linear-gradient(90deg, var(--sand) 25%, #E8DCC9 37%, var(--sand) 63%); background-size: 400% 100%; animation: skeletonShine 1.5s ease infinite; }
+        @keyframes skeletonShine { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- 1. شريط معلومات علوي -->
+    <div class="text-white py-2 px-4 text-center text-[11px] md:text-xs sticky top-0 z-50" style="background: var(--ink);">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-1">
+            <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-gift" style="color: var(--gold);"></i>
+                خصم إضافي 50 جنيه مع كل قطعة ثانية
+            </span>
+            <span class="flex items-center gap-1.5 opacity-90">
+                <i class="fa-solid fa-location-dot" style="color: var(--gold);"></i>
+                المحلة الكبرى - شارع البهلوان
+            </span>
+        </div>
     </div>
-  </div>
-  <div class="category-strip"><div id="category-tabs" class="category-inner"></div></div>
-</header>
 
-<main id="home">
-<section class="hero-v3">
-  <div class="hero-copy">
-    <span class="eyebrow">DALLA EL HAWANEM · NEW EDIT</span>
-    <h1>أناقة تُرى.<br><em>وتُحس.</em></h1>
-    <p>اختيارات أنثوية راقية، تفاصيل هادئة، وخامات نختارها لتليق بكِ.</p>
-    <div class="hero-actions"><button class="primary-btn" onclick="scrollToProducts()">اكتشفي التشكيلة <i class="fa-solid fa-arrow-left"></i></button><button class="text-btn" onclick="showWishlistOnly()">المفضلة <i class="fa-regular fa-heart"></i></button></div>
-  </div>
-  <div class="hero-visual">
-    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1400&q=90" alt="Fashion editorial" />
-    <div class="hero-label"><span>EDITORIAL 2026</span><strong>THE NEW FEMININE</strong></div>
-    <div class="hero-number">01</div>
-  </div>
-</section>
+    <!-- 2. الهيدر -->
+    <header class="border-b sticky top-[30px] z-40" style="background: var(--surface); border-color: var(--line);">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
+            <a href="#" class="flex items-center gap-3">
+                <div class="monogram">د</div>
+                <div>
+                    <span class="font-display text-xl md:text-2xl font-bold block leading-tight" style="color: var(--ink);">دلع الهوانم</span>
+                    <span class="text-[10px] tracking-wide block" style="color: var(--ink-muted);">أزياء نسائية راقية</span>
+                </div>
+            </a>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAdminModal()" class="btn-outline px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock" style="color: var(--rosewood);"></i>
+                    <span class="hidden md:inline">لوحة الإدارة</span>
+                </button>
+                <button onclick="toggleCartDrawer(true)" class="btn-outline relative px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-bag-shopping" style="color: var(--rosewood);"></i>
+                    <span>السلة</span>
+                    <span id="cart-badge" class="text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center" style="background: var(--rosewood);">0</span>
+                </button>
+            </div>
+        </div>
+        <!-- تبويبات التصنيفات -->
+        <div style="border-top: 1px solid var(--line); background: var(--surface);">
+            <div id="category-tabs" class="max-w-6xl mx-auto px-4 flex gap-5 overflow-x-auto tab-scroll"></div>
+        </div>
+    </header>
 
-<section id="collections" class="collections-v3">
-  <div class="section-head"><div><span class="eyebrow dark">SHOP BY MOOD</span><h2>اختاري عالمك</h2></div><p>تصنيفات بصريّة بسيطة بدل الأيقونات التقليدية.</p></div>
-  <div class="category-cards">
-    <button onclick="selectCategory('all')" class="category-card"><img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=88" alt="Fashion collection"><span>كل التشكيلة</span><i class="fa-solid fa-arrow-left"></i></button>
-    <button onclick="selectCategory(categoriesList[0]?.id ?? 'all')" class="category-card"><img src="https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=900&q=88" alt="Women's fashion"><span>${'الأزياء'}</span><i class="fa-solid fa-arrow-left"></i></button>
-    <button onclick="selectCategory(categoriesList[1]?.id ?? 'all')" class="category-card"><img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=88" alt="Elegant fashion"><span>${'القطع المميزة'}</span><i class="fa-solid fa-arrow-left"></i></button>
-    <button onclick="selectCategory(categoriesList[2]?.id ?? 'all')" class="category-card"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=88" alt="Fashion style"><span>${'ستايل اليوم'}</span><i class="fa-solid fa-arrow-left"></i></button>
-  </div>
-</section>
+    <!-- 3. الهيرو -->
+    <section class="px-4 pt-12 pb-10 md:pt-16 md:pb-14">
+        <div class="max-w-6xl mx-auto">
+            <div class="max-w-2xl hero-reveal">
+                <h1 class="font-display text-3xl md:text-[2.75rem] leading-[1.25] font-semibold" style="color: var(--ink);">
+                    أرقى الموديلات، بأعلى خامة، وأنسب سعر
+                </h1>
+                <div class="divider-gold w-14 my-4"></div>
+                <p class="text-sm md:text-base leading-relaxed" style="color: var(--ink-muted);">
+                    فرعنا الرئيسي في المحلة الكبرى - شارع البهلوان. التوصيل متاح لجميع المحافظات، مع إمكانية المعاينة قبل الاستلام.
+                </p>
+            </div>
+        </div>
+    </section>
 
-<section id="products" class="products-section">
-  <div class="products-top"><div><span class="eyebrow dark">CURATED FOR YOU</span><h2 id="products-heading"><span class="heading-kicker">THE COLLECTION</span> المنتجات الجديدة</h2></div><button class="outline-btn" onclick="showWishlistOnly()"><i class="fa-regular fa-heart"></i> المفضلة <span id="wishlist-badge">0</span></button></div>
-  <div id="loading-skeleton" class="premium-skeleton"><div></div><div></div><div></div></div>
-  <div id="load-error" class="hidden error-box"><i class="fa-solid fa-triangle-exclamation"></i><p id="load-error-text"></p><button onclick="initStore()">إعادة المحاولة</button></div>
-  <div id="products-grid" class="products-grid-v3 hidden"></div>
-</section>
+    <!-- 4. المنتجات -->
+    <main class="max-w-6xl mx-auto px-4 pb-6 flex-grow">
+        <div class="flex items-end justify-between mb-6">
+            <h2 id="products-heading" class="font-display text-xl md:text-2xl font-semibold" style="color: var(--ink);">المنتجات المتاحة حالياً</h2>
+        </div>
+        <div id="loading-skeleton" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
+            <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
+            <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
+        </div>
+        <div id="load-error" class="hidden text-center py-12 card rounded-2xl">
+            <i class="fa-solid fa-triangle-exclamation text-2xl mb-2" style="color: var(--rosewood);"></i>
+            <p id="load-error-text" class="text-sm font-bold" style="color: var(--rosewood-deep);"></p>
+            <button onclick="initStore()" class="btn-primary mt-3 text-xs font-bold px-4 py-2 rounded-lg">إعادة المحاولة</button>
+        </div>
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden"></div>
+    </main>
 
-<section class="editorial-banner">
-  <div><span class="eyebrow">DALLA EL HAWANEM</span><h2>قطع هادئة.<br>حضور لا يُنسى.</h2><p>التفاصيل هي الفارق — من اختيار القماش إلى آخر غرزة.</p><button class="primary-btn light" onclick="scrollToProducts()">شاهدي المجموعة <i class="fa-solid fa-arrow-left"></i></button></div>
-  <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1300&q=90" alt="Fashion editorial look">
-</section>
+    <!-- 5. آراء العميلات -->
+    <section class="py-14" style="border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface);">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="font-display text-xl md:text-2xl font-semibold mb-10" style="color: var(--ink);">آراء هوانم المحلة الكبرى والمحافظات</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-0">
+                <div class="md:pl-8 space-y-3">
+                    <span class="font-display text-3xl leading-none" style="color: var(--gold);">”</span>
+                    <p class="text-sm leading-relaxed" style="color: var(--ink);">ما شاء الله الخامة تحفة والتقفيل ممتاز جداً.. زرت المحل بنفسي في شارع البهلوان والتعامل راقي جداً.</p>
+                    <p class="text-xs font-bold" style="color: var(--ink-muted);">أم أسر — المحلة</p>
+                </div>
+                <div class="md:px-8 space-y-3" style="border-right: 1px solid var(--line); border-left: 1px solid var(--line);">
+                    <span class="font-display text-3xl leading-none" style="color: var(--gold);">”</span>
+                    <p class="text-sm leading-relaxed" style="color: var(--ink);">أطلبت أونلاين والشحن وصلني في يومين، وعاينت المنتج قبل ما ادفع. شكراً دلع الهوانم.</p>
+                    <p class="text-xs font-bold" style="color: var(--ink-muted);">دعاء ناصر — طنطا</p>
+                </div>
+                <div class="md:pr-8 space-y-3">
+                    <span class="font-display text-3xl leading-none" style="color: var(--gold);">”</span>
+                    <p class="text-sm leading-relaxed" style="color: var(--ink);">الخصم الإضافي مع القطعة الثانية حقيقي واستفدت بيه. ألوان القماش تحفة في الحقيقة.</p>
+                    <p class="text-xs font-bold" style="color: var(--ink-muted);">مروة خليل — القاهرة</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<section id="about" class="trust-v3">
-  <div><span class="trust-icon"><i class="fa-solid fa-gem"></i></span><strong>اختيارات منتقاة</strong><p>تشكيلة تركز على الخامة والشكل قبل أي شيء.</p></div>
-  <div><span class="trust-icon"><i class="fa-solid fa-truck-fast"></i></span><strong>توصيل للمحافظات</strong><p>اطلبي بسهولة وتابعي طلبك عبر الواتساب.</p></div>
-  <div><span class="trust-icon"><i class="fa-solid fa-shield-heart"></i></span><strong>تجربة شراء واضحة</strong><p>تفاصيل وأسعار وسياسة طلب بسيطة ومباشرة.</p></div>
-</section>
+    <!-- 6. الفوتر -->
+    <footer class="pt-12 pb-6" style="background: var(--ink); color: var(--paper);">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10 pb-8 text-center md:text-right" style="border-bottom: 1px solid rgba(250,245,238,.15);">
+            <div>
+                <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
+                    <div class="monogram" style="border-color: var(--gold-soft); color: var(--gold-soft);">د</div>
+                    <span class="font-display text-xl font-semibold">دلع الهوانم</span>
+                </div>
+                <p class="text-xs leading-relaxed opacity-70">
+                    متجر متخصص في توفير أرقى الملابس والأزياء للنساء بأعلى خامات وأنسب أسعار.
+                </p>
+            </div>
+            <div class="space-y-2 text-xs opacity-90">
+                <h4 class="font-bold text-sm mb-3" style="color: var(--gold-soft);">عنوان المتجر والتواصل</h4>
+                <p><i class="fa-solid fa-location-dot ml-1" style="color: var(--gold-soft);"></i> المحلة الكبرى - شارع البهلوان</p>
+                <p><i class="fa-solid fa-phone ml-1" style="color: var(--gold-soft);"></i> 01065852975</p>
+                <p><i class="fa-brands fa-whatsapp ml-1" style="color: var(--gold-soft);"></i> واتساب: 01065852975</p>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-bold text-sm" style="color: var(--gold-soft);">طلب سريع عبر الواتساب</h4>
+                <a href="https://wa.me/201065852975" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> تواصلي معنا مباشرة
+                </a>
+            </div>
+        </div>
+        <div class="text-center text-xs opacity-50 pt-4">
+            جميع الحقوق محفوظة &copy; 2026 - دلع الهوانم
+        </div>
+    </footer>
 
-<section class="reviews-v3">
-  <div class="section-head"><div><span class="eyebrow">THE HAWANEM SAY</span><h2>تجربة عميلاتنا</h2></div></div>
-  <div class="review-grid"><article><div>★★★★★</div><p>الخامة والتقفيل ممتازين والتعامل راقي جداً.</p><strong>أم أسر · المحلة</strong></article><article><div>★★★★★</div><p>الطلب أونلاين كان سهل ووصل في الموعد.</p><strong>دعاء ناصر · طنطا</strong></article><article><div>★★★★★</div><p>الألوان على الطبيعة أجمل، والخصم كان واضح.</p><strong>مروة خليل · القاهرة</strong></article></div>
-</section>
-</main>
+    <!-- 7. درج سلة التسوق -->
+    <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
+        <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
+            <div class="flex justify-between items-center pb-4 mb-4" style="border-bottom: 1px solid var(--line);">
+                <h3 class="font-display text-lg font-semibold flex items-center gap-2" style="color: var(--ink);"><i class="fa-solid fa-bag-shopping" style="color: var(--rosewood);"></i> سلة المشتريات</h3>
+                <button onclick="toggleCartDrawer(false)" class="text-xl font-bold" style="color: var(--ink-muted);">&times;</button>
+            </div>
+            <div id="cart-items" class="space-y-3 flex-grow"></div>
+            <div id="cart-summary" class="pt-4 mt-4 space-y-3" style="border-top: 1px solid var(--line);">
+                <div class="flex justify-between text-sm font-bold"><span style="color: var(--ink-muted);">إجمالي الخصم المستحق</span><span id="cart-discount" class="text-emerald-700">0 ج.م</span></div>
+                <div class="flex justify-between text-lg font-black"><span style="color: var(--ink);">المبلغ الإجمالي</span><span id="cart-total" style="color: var(--rosewood-deep);">0 ج.م</span></div>
+                <div class="space-y-2 pt-1">
+                    <label class="block text-xs font-bold" style="color: var(--ink);">طريقة الدفع</label>
+                    <div id="payment-methods" class="grid grid-cols-1 gap-2">
+                        <label class="card flex items-center gap-2 rounded-lg p-2.5 text-xs cursor-pointer has-[:checked]:border-[var(--rosewood)]">
+                            <input type="radio" name="payment-method" value="cod" checked onchange="onPaymentMethodChange()" style="accent-color: var(--rosewood);">
+                            <i class="fa-solid fa-sack-dollar" style="color: var(--gold);"></i> الدفع عند الاستلام (كاش)
+                        </label>
+                        <label class="card flex items-center gap-2 rounded-lg p-2.5 text-xs cursor-pointer has-[:checked]:border-[var(--rosewood)]">
+                            <input type="radio" name="payment-method" value="vodafone_cash" onchange="onPaymentMethodChange()" style="accent-color: var(--rosewood);">
+                            <i class="fa-solid fa-mobile-screen" style="color: var(--gold);"></i> فودافون كاش
+                        </label>
+                        <label class="card flex items-center gap-2 rounded-lg p-2.5 text-xs cursor-pointer has-[:checked]:border-[var(--rosewood)]">
+                            <input type="radio" name="payment-method" value="instapay" onchange="onPaymentMethodChange()" style="accent-color: var(--rosewood);">
+                            <i class="fa-solid fa-university" style="color: var(--gold);"></i> إنستاباي (InstaPay)
+                        </label>
+                    </div>
+                    <div id="payment-details" class="hidden rounded-lg p-3 text-[11px] space-y-2" style="background: var(--sand); border: 1px solid var(--line); color: var(--ink);"></div>
+                </div>
+                <div class="space-y-2 pt-2">
+                    <input type="text" id="cust-name" placeholder="الاسم بالكامل" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);">
+                    <input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);">
+                    <input type="text" id="cust-address" placeholder="عنوان التوصيل بالتفصيل" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);">
+                </div>
+                <button onclick="sendOrderWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[.98] text-white font-bold py-3.5 rounded-lg shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-xl"></i> تأكيد الطلب وإرسال عبر الواتساب
+                </button>
+            </div>
+        </div>
+    </div>
 
-<footer class="footer-v3"><div class="footer-brand"><div class="brand-mark">DH</div><div><strong>دلع الهوانم</strong><small>FASHION &amp; STYLE</small></div></div><p>المحلة الكبرى · شارع البهلوان</p><a href="https://wa.me/201065852975" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> واتساب 01065852975</a><span>© 2026 دلع الهوانم</span></footer>
+    <!-- 8. لوحة الإدارة -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
+        <div class="w-full max-w-3xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6 anim-pop-in" style="background: var(--surface);">
+            <div class="flex justify-between items-center pb-3" style="border-bottom: 1px solid var(--line);">
+                <h3 class="font-display text-xl font-semibold flex items-center gap-2" style="color: var(--ink);"><i class="fa-solid fa-sliders" style="color: var(--rosewood);"></i> لوحة إدارة متجر دلع الهوانم</h3>
+                <button onclick="closeAdminModal()" class="text-2xl" style="color: var(--ink-muted);">&times;</button>
+            </div>
+            <div class="flex gap-2" style="border-bottom: 1px solid var(--line);">
+                <button id="admin-tab-btn-products" onclick="switchAdminTab('products')" class="px-4 py-2 text-xs font-bold" style="border-bottom: 2px solid var(--rosewood); color: var(--rosewood);">المنتجات</button>
+                <button id="admin-tab-btn-categories" onclick="switchAdminTab('categories')" class="px-4 py-2 text-xs font-bold" style="border-bottom: 2px solid transparent; color: var(--ink-muted);">التصنيفات</button>
+            </div>
+            <div id="admin-tab-products" class="space-y-6">
+                <form id="add-product-form" onsubmit="handleProductFormSubmit(event)" class="rounded-xl p-4 space-y-3" style="background: var(--paper); border: 1px solid var(--line);">
+                    <div class="flex justify-between items-center">
+                        <h4 id="product-form-title" class="font-bold text-sm" style="color: var(--rosewood-deep);">إضافة منتج جديد وتخزينه في Supabase</h4>
+                        <button type="button" id="cancel-edit-btn" onclick="cancelEditProduct()" class="hidden text-[11px] font-bold" style="color: var(--ink-muted);">إلغاء التعديل</button>
+                    </div>
+                    <input type="hidden" id="p-edit-id" value="">
+                    <input type="hidden" id="p-existing-image" value="">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" id="p-title" placeholder="اسم المنتج (مثال: إسدال فسكوز ساتان)" required class="rounded-lg text-xs p-2" style="border: 1px solid var(--line);">
+                        <select id="p-category" required class="rounded-lg text-xs p-2 bg-white" style="border: 1px solid var(--line);">
+                            <option value="">اختاري التصنيف</option>
+                        </select>
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold mb-1" style="color: var(--ink-muted);">صورة المنتج:</label>
+                            <input type="file" id="p-image-file" accept="image/*" onchange="previewProductImage(event)" class="rounded-lg text-xs p-1.5 w-full bg-white" style="border: 1px solid var(--line);">
+                            <div id="image-preview-wrap" class="mt-2 hidden">
+                                <img id="image-preview" class="w-16 h-16 object-cover rounded-lg" style="border: 1px solid var(--line);">
+                            </div>
+                            <p id="image-hint" class="text-[10px] mt-1 hidden" style="color: var(--ink-muted);">اتركي هذا الحقل فارغاً إذا كنتِ لا تريدين تغيير الصورة الحالية.</p>
+                        </div>
+                        <input type="number" id="p-price" placeholder="السعر بعد الخصم (ج.م)" required min="0" step="0.01" class="rounded-lg text-xs p-2" style="border: 1px solid var(--line);">
+                        <input type="number" id="p-old-price" placeholder="السعر الأصلي قبل الخصم (ج.م)" min="0" step="0.01" class="rounded-lg text-xs p-2" style="border: 1px solid var(--line);">
+                    </div>
+                    <textarea id="p-desc" placeholder="وصف قصير للمنتج والخامة..." class="w-full rounded-lg text-xs p-2" style="border: 1px solid var(--line);" rows="2"></textarea>
+                    <div class="flex justify-between items-center">
+                        <select id="p-status" class="rounded-lg text-xs p-2 font-bold" style="border: 1px solid var(--line);">
+                            <option value="available">متوفر بالمعرض</option>
+                            <option value="out">نفدت الكمية</option>
+                        </select>
+                        <button type="submit" id="submit-btn" class="btn-primary font-bold px-6 py-2 rounded-lg text-xs flex items-center gap-2">
+                            <span id="submit-btn-text">حفظ ونشر على Supabase</span>
+                        </button>
+                    </div>
+                </form>
+                <div class="space-y-3">
+                    <h4 class="font-bold text-sm" style="color: var(--ink);">المنتجات المنشورة حالياً:</h4>
+                    <div id="admin-products-list" class="space-y-2"></div>
+                </div>
+            </div>
+            <div id="admin-tab-categories" class="space-y-6 hidden">
+                <form id="add-category-form" onsubmit="handleAddCategory(event)" class="rounded-xl p-4 space-y-3" style="background: var(--paper); border: 1px solid var(--line);">
+                    <h4 class="font-bold text-sm" style="color: var(--rosewood-deep);">إضافة تصنيف جديد</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_100px_auto] gap-3">
+                        <input type="text" id="c-name" placeholder="اسم التصنيف (مثال: إسدالات ملابس بيتي)" required class="rounded-lg text-xs p-2" style="border: 1px solid var(--line);">
+                        <input type="text" id="c-icon" placeholder="إيموجي (اختياري)" maxlength="4" class="rounded-lg text-xs p-2 text-center" style="border: 1px solid var(--line);">
+                        <button type="submit" class="btn-primary font-bold px-5 py-2 rounded-lg text-xs whitespace-nowrap">إضافة</button>
+                    </div>
+                </form>
+                <div class="space-y-3">
+                    <h4 class="font-bold text-sm" style="color: var(--ink);">التصنيفات الحالية:</h4>
+                    <div id="admin-categories-list" class="space-y-2"></div>
+                    <p id="no-categories-hint" class="hidden text-[11px]" style="color: var(--ink-muted);">لا توجد تصنيفات بعد. أضيفي أول تصنيف من الأعلى.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="mobile-bottom-nav"><button onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button><button onclick="document.getElementById('collections').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-layer-group"></i><span>التشكيلات</span></button><button onclick="showWishlistOnly()"><i class="fa-regular fa-heart"></i><span>المفضلة</span></button><button onclick="toggleCartDrawer(true)"><i class="fa-solid fa-bag-shopping"></i><span>السلة</span><b id="mobile-cart-badge">0</b></button></div>
+    <!-- 9. نافذة تأكيد عامة -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 flex items-center justify-center p-4">
+        <div class="w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 anim-pop-in text-center" style="background: var(--surface);">
+            <p id="confirm-modal-text" class="text-sm font-bold" style="color: var(--ink);"></p>
+            <div class="flex gap-2">
+                <button id="confirm-modal-cancel" class="btn-outline flex-1 font-bold py-2.5 rounded-lg text-xs">إلغاء</button>
+                <button id="confirm-modal-ok" class="btn-primary flex-1 font-bold py-2.5 rounded-lg text-xs">تأكيد</button>
+            </div>
+        </div>
+    </div>
 
-<div id="quick-view-modal" class="quick-modal hidden" onclick="if(event.target===this)closeQuickView()">
- <div class="quick-card">
-  <button class="modal-close" onclick="closeQuickView()"><i class="fa-solid fa-xmark"></i></button>
-  <div class="qv-image-wrap"><img id="qv-image" src="" alt=""></div>
-  <div class="qv-copy"><span id="qv-status" class="qv-status available">متاح الآن</span><h2 id="qv-title"></h2><p id="qv-desc"></p><div class="qv-price"><strong id="qv-price"></strong><del id="qv-old-price"></del></div><div class="qv-actions"><button id="qv-add" class="primary-btn">إضافة إلى السلة</button><button id="qv-wish" class="wish-large"></button></div></div>
- </div>
-</div>
+    <!-- 10. حاوية التنبيهات -->
+    <div id="toast-container" class="fixed bottom-4 inset-x-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
-<!-- Original cart/admin infrastructure kept intact -->
-<div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
- <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 bg-white w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto">
-  <div class="flex justify-between items-center border-b pb-4 mb-4"><h3 class="text-lg font-extrabold">سلة المشتريات</h3><button onclick="toggleCartDrawer(false)" class="text-xl">&times;</button></div>
-  <div id="cart-items" class="space-y-4 flex-grow"></div><div id="cart-summary" class="border-t pt-4 mt-4 space-y-3">
-   <div class="flex justify-between text-sm font-bold"><span>إجمالي الخصم المستحق:</span><span id="cart-discount" class="text-emerald-600">0 ج.م</span></div>
-   <div class="flex justify-between text-lg font-black"><span>المبلغ الإجمالي:</span><span id="cart-total" class="text-rose-700">0 ج.م</span></div>
-   <div class="space-y-2 pt-1"><label class="block text-xs font-bold">طريقة الدفع</label><div id="payment-methods" class="grid gap-2">
-    <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs"><input type="radio" name="payment-method" value="cod" checked onchange="onPaymentMethodChange()"> الدفع عند الاستلام (كاش)</label>
-    <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs"><input type="radio" name="payment-method" value="vodafone_cash" onchange="onPaymentMethodChange()"> فودافون كاش</label>
-    <label class="flex items-center gap-2 border rounded-xl p-2.5 text-xs"><input type="radio" name="payment-method" value="instapay" onchange="onPaymentMethodChange()"> إنستاباي</label>
-   </div><div id="payment-details" class="hidden"></div></div>
-   <div class="space-y-2"><input type="text" id="cust-name" placeholder="الاسم بالكامل"><input type="tel" id="cust-phone" placeholder="رقم الهاتف للتواصل"><input type="text" id="cust-address" placeholder="عنوان التوصيل بالتفصيل"></div>
-   <button onclick="sendOrderWhatsApp()" class="whatsapp-btn"><i class="fa-brands fa-whatsapp"></i> تأكيد الطلب عبر الواتساب</button>
-  </div>
- </div>
-</div>
-
-<!-- Admin modal from the source, kept functional -->
-<div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
- <div class="admin-v3">
-  <div class="admin-head"><h3>لوحة إدارة متجر دلع الهوانم</h3><button onclick="closeAdminModal()">&times;</button></div>
-  <div class="admin-tabs"><button id="admin-tab-btn-products" onclick="switchAdminTab('products')">المنتجات</button><button id="admin-tab-btn-categories" onclick="switchAdminTab('categories')">التصنيفات</button></div>
-  <div id="admin-tab-products"><div id="admin-products-list"></div></div><div id="admin-tab-categories" class="hidden"><div id="admin-categories-list"></div><p id="no-categories-hint"></p></div>
- </div>
-</div>
-
-<div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 items-center justify-center p-4"><div class="admin-v3"><p id="confirm-modal-text"></p><div class="flex gap-2 justify-end"><button id="confirm-modal-cancel">إلغاء</button><button id="confirm-modal-ok" class="primary-btn">تأكيد</button></div></div></div>
-<div id="toast-container" class="fixed bottom-24 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
-<script>
-        // 🔑 1. بيانات مشروع Supabase الخاص بك:
+    <script>
         const SUPABASE_URL = "https://niuxwiuaiqahnkptlysm.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdXh3aXVhaXFhaG5rcHRseXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTcwOTQsImV4cCI6MjEwNTIzMzA5NH0.efj-duLJhE1xcvaVeFjzcGYGPAEgQJ87nrPp9V10__w";
-
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // 🔐 كلمة مرور لوحة الإدارة
         const ADMIN_PASSWORD = "123456";
         let isAdminLoggedIn = false;
-
-        // 💳 بيانات طرق الدفع الإلكتروني (حدّثيها من هنا وقت ما تحبي)
         const PAYMENT_INFO = {
             vodafone_cash: { label: 'فودافون كاش', number: '01065852975' },
             instapay: { label: 'إنستاباي (InstaPay)', number: '01065852975' }
         };
-
         let categoriesList = [];
         let productsList = [];
         let cart = [];
         let activeCategoryId = 'all';
         let categoriesTableMissing = false;
 
-        // ===================== أدوات مساعدة عامة =====================
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
         function toast(message, type = 'success') {
             const container = document.getElementById('toast-container');
-            const colors = {
-                success: 'bg-emerald-600',
-                error: 'bg-rose-600',
-                info: 'bg-gray-800'
-            };
+            const colors = { success: 'background:#1F6F52;', error: 'background:var(--rosewood-deep);', info: 'background:var(--ink);' };
             const el = document.createElement('div');
-            el.className = `anim-toast-in pointer-events-auto ${colors[type] || colors.info} text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg max-w-xs text-center`;
+            el.className = 'anim-toast-in pointer-events-auto text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-lg max-w-xs text-center';
+            el.setAttribute('style', colors[type] || colors.info);
             el.textContent = message;
             container.appendChild(el);
+
             setTimeout(() => {
                 el.style.transition = 'opacity .25s ease';
                 el.style.opacity = '0';
@@ -175,7 +354,6 @@
                 document.getElementById('confirm-modal-text').textContent = message;
                 const okBtn = document.getElementById('confirm-modal-ok');
                 const cancelBtn = document.getElementById('confirm-modal-cancel');
-
                 const cleanup = (result) => {
                     modal.classList.add('hidden');
                     modal.classList.remove('opacity-100');
@@ -183,7 +361,6 @@
                     cancelBtn.onclick = null;
                     resolve(result);
                 };
-
                 okBtn.onclick = () => cleanup(true);
                 cancelBtn.onclick = () => cleanup(false);
                 modal.classList.remove('hidden');
@@ -191,7 +368,6 @@
             });
         }
 
-        // ===================== تحميل بيانات المتجر =====================
         async function initStore() {
             document.getElementById('load-error').classList.add('hidden');
             document.getElementById('loading-skeleton').classList.remove('hidden');
@@ -202,16 +378,11 @@
 
         async function fetchCategories() {
             try {
-                const { data, error } = await _supabase
-                    .from('categories')
-                    .select('*')
-                    .order('sort_order', { ascending: true });
-
+                const { data, error } = await _supabase.from('categories').select('*').order('sort_order', { ascending: true });
                 if (error) throw error;
                 categoriesList = data || [];
                 categoriesTableMissing = false;
             } catch (err) {
-                // في حالة عدم وجود جدول التصنيفات بعد (لم يتم تشغيل ملف SQL المرفق)
                 console.error('خطأ في جلب التصنيفات:', err);
                 categoriesList = [];
                 categoriesTableMissing = true;
@@ -222,10 +393,8 @@
 
         async function fetchProducts() {
             try {
-                let query = _supabase.from('products').select('*').order('created_at', { ascending: false });
-                const { data, error } = await query;
+                const { data, error } = await _supabase.from('products').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-
                 productsList = data || [];
                 document.getElementById('loading-skeleton').classList.add('hidden');
                 document.getElementById('products-grid').classList.remove('hidden');
@@ -240,19 +409,16 @@
             }
         }
 
-        // ===================== التصنيفات (عرض للعملاء) =====================
         function renderCategoryTabs() {
             const wrap = document.getElementById('category-tabs');
             const allBtn = `
-                <button onclick="selectCategory('all')" class="cat-pill shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border ${activeCategoryId === 'all' ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-rose-300'}">
-                    🛍️ الكل
+                <button onclick="selectCategory('all')" class="tab-pill shrink-0 py-3 text-xs font-bold ${activeCategoryId === 'all' ? 'is-active' : ''}">
+                    الكل
                 </button>`;
-
             const catBtns = categoriesList.map(c => `
-                <button onclick="selectCategory(${c.id})" class="cat-pill shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border ${activeCategoryId === c.id ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-rose-300'}">
-                    ${escapeHtml(c.icon || '👗')} ${escapeHtml(c.name)}
+                <button onclick="selectCategory(${c.id})" class="tab-pill shrink-0 py-3 text-xs font-bold ${activeCategoryId === c.id ? 'is-active' : ''}">
+                    ${escapeHtml(c.name)}
                 </button>`).join('');
-
             wrap.innerHTML = allBtn + catBtns;
         }
 
@@ -263,663 +429,419 @@
             document.getElementById('products-heading').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ===================== عرض المنتجات للعملاء =====================
         function renderProducts() {
             const grid = document.getElementById('products-grid');
             const heading = document.getElementById('products-heading');
 
             let filtered = productsList;
-            if (activeCategoryId !== 'all') {
-                filtered = productsList.filter(p => p.category_id === activeCategoryId);
-            }
-
+            if (activeCategoryId !== 'all') filtered = productsList.filter(p => p.category_id === activeCategoryId);
             if (activeCategoryId === 'all') {
-                heading.innerHTML = `<i class="fa-solid fa-shirt text-rose-600"></i> المنتجات المتاحة حالياً`;
+                heading.textContent = 'المنتجات المتاحة حالياً';
             } else {
                 const cat = categoriesList.find(c => c.id === activeCategoryId);
-                heading.innerHTML = `<i class="fa-solid fa-shirt text-rose-600"></i> ${escapeHtml(cat ? cat.name : 'تصنيف')}`;
+                heading.textContent = cat ? cat.name : 'تصنيف';
             }
-
             if (filtered.length === 0) {
-                grid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-8">لا توجد منتجات معروضة في هذا القسم حالياً.</p>`;
+                grid.innerHTML = `<p class="col-span-full text-center py-10 text-sm" style="color: var(--ink-muted);">لا توجد منتجات في هذا القسم حالياً.</p>`;
                 return;
             }
-
             grid.innerHTML = filtered.map(p => `
-                <div class="product-card anim-fade-in bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex flex-col justify-between space-y-3">
+                <div class="product-card card rounded-2xl p-4 flex flex-col justify-between space-y-3">
                     <div class="space-y-3">
-                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-gray-50">
+                        <div class="relative aspect-square rounded-xl overflow-hidden" style="background: var(--sand);">
                             <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" class="w-full h-full object-cover" loading="lazy">
-                            ${p.old_price ? `<span class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
+                            ${p.old_price ? `<span class="tag-sale absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
                         </div>
-                        <h3 class="font-black text-gray-900 text-base leading-snug">${escapeHtml(p.title)}</h3>
-                        <p class="text-gray-500 text-xs line-clamp-2">${escapeHtml(p.desc || '')}</p>
+                        <h3 class="font-bold text-base leading-snug" style="color: var(--ink);">${escapeHtml(p.title)}</h3>
+                        <p class="text-xs line-clamp-2" style="color: var(--ink-muted);">${escapeHtml(p.desc || '')}</p>
                     </div>
-                    <div class="space-y-3 pt-2 border-t border-gray-50">
+                    <div class="space-y-3 pt-2" style="border-top: 1px solid var(--line);">
                         <div class="flex items-baseline justify-between">
-                            <span class="text-xl font-black text-rose-700">${p.price} <span class="text-xs font-normal">ج.م</span></span>
-                            ${p.old_price ? `<span class="text-xs text-gray-400 line-through">${p.old_price} ج.م</span>` : ''}
+                            <div>
+                                <span class="font-bold text-lg" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
+                                ${p.old_price ? `<span class="text-xs line-through mr-1.5" style="color: var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
+                            </div>
+                            ${p.status === 'out' ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">نفدت الكمية</span>` : ''}
                         </div>
-                        ${p.status === 'available' ? `
-                            <button onclick="addToCart(${p.id}, event)" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-cart-plus"></i> إضافة للسلة
-                            </button>
-                        ` : `
-                            <button disabled class="w-full bg-gray-200 text-gray-500 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed">نفدت الكمية</button>
-                        `}
+                        <button onclick="addToCart('${p.id}')" ${p.status === 'out' ? 'disabled' : ''} class="btn-primary w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <span>${p.status === 'out' ? 'غير متوفر' : 'إضافة للسلة'}</span>
+                        </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // ===================== رفع صورة المنتج =====================
-        async function uploadProductImage(file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `products/${fileName}`;
-
-            const { error } = await _supabase.storage
-                .from('product-images')
-                .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
-            if (error) throw error;
-
-            const { data: publicUrlData } = _supabase.storage
-                .from('product-images')
-                .getPublicUrl(filePath);
-
-            return publicUrlData.publicUrl;
-        }
-
-        function previewProductImage(e) {
-            const file = e.target.files[0];
-            const wrap = document.getElementById('image-preview-wrap');
-            if (!file) { wrap.classList.add('hidden'); return; }
-            const img = document.getElementById('image-preview');
-            img.src = URL.createObjectURL(file);
-            wrap.classList.remove('hidden');
-        }
-
-        // ===================== إضافة / تعديل منتج =====================
-        async function handleProductFormSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            const btnText = document.getElementById('submit-btn-text');
-            const fileInput = document.getElementById('p-image-file');
-            const editId = document.getElementById('p-edit-id').value;
-            const existingImage = document.getElementById('p-existing-image').value;
-
-            const title = document.getElementById('p-title').value.trim();
-            const price = Number(document.getElementById('p-price').value);
-            const oldPriceRaw = document.getElementById('p-old-price').value;
-            const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
-            const categoryId = document.getElementById('p-category').value;
-            const desc = document.getElementById('p-desc').value.trim();
-            const status = document.getElementById('p-status').value;
-
-            if (!categoryId) { toast('يرجى اختيار تصنيف للمنتج', 'error'); return; }
-            if (oldPrice && oldPrice <= price) { toast('السعر الأصلي يجب أن يكون أكبر من السعر بعد الخصم', 'error'); return; }
-            if (!editId && !fileInput.files[0]) { toast('يرجى اختيار صورة للمنتج', 'error'); return; }
-
-            try {
-                btn.disabled = true;
-                btnText.textContent = 'جاري الحفظ...';
-
-                let imageUrl = existingImage;
-                if (fileInput.files[0]) {
-                    imageUrl = await uploadProductImage(fileInput.files[0]);
-                }
-
-                const payload = {
-                    title,
-                    price,
-                    old_price: oldPrice,
-                    desc,
-                    image: imageUrl,
-                    status,
-                    category_id: Number(categoryId)
-                };
-
-                if (editId) {
-                    const { error } = await _supabase.from('products').update(payload).eq('id', editId);
-                    if (error) throw error;
-                    toast('تم تحديث المنتج بنجاح 🎉');
-                } else {
-                    const { error } = await _supabase.from('products').insert([payload]);
-                    if (error) throw error;
-                    toast('تم نشر المنتج بنجاح 🎉');
-                }
-
-                resetProductForm();
-                await fetchProducts();
-            } catch (err) {
-                toast('حدث خطأ أثناء الحفظ: ' + (err.message || err), 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = editId ? 'تحديث المنتج' : 'حفظ ونشر على Supabase';
+        /* --- إدارة السلة --- */
+        function addToCart(productId) {
+            const prod = productsList.find(p => p.id == productId);
+            if (!prod) return;
+            const existing = cart.find(item => item.id == productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ id: prod.id, title: prod.title, price: Number(prod.price), image: prod.image, quantity: 1 });
             }
+            renderCart();
+            toast(`تمت إضافة "${prod.title}" إلى السلة`);
         }
 
-        function resetProductForm() {
-            document.getElementById('add-product-form').reset();
-            document.getElementById('p-edit-id').value = '';
-            document.getElementById('p-existing-image').value = '';
-            document.getElementById('image-preview-wrap').classList.add('hidden');
-            document.getElementById('image-hint').classList.add('hidden');
-            document.getElementById('product-form-title').textContent = 'إضافة منتج جديد وتخزينه في Supabase';
-            document.getElementById('submit-btn-text').textContent = 'حفظ ونشر على Supabase';
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
-        }
-
-        function startEditProduct(id) {
-            const p = productsList.find(item => item.id === id);
-            if (!p) return;
-
-            document.getElementById('p-edit-id').value = p.id;
-            document.getElementById('p-existing-image').value = p.image;
-            document.getElementById('p-title').value = p.title;
-            document.getElementById('p-price').value = p.price;
-            document.getElementById('p-old-price').value = p.old_price || '';
-            document.getElementById('p-desc').value = p.desc || '';
-            document.getElementById('p-status').value = p.status;
-            document.getElementById('p-category').value = p.category_id || '';
-
-            const preview = document.getElementById('image-preview');
-            preview.src = p.image;
-            document.getElementById('image-preview-wrap').classList.remove('hidden');
-            document.getElementById('image-hint').classList.remove('hidden');
-
-            document.getElementById('product-form-title').textContent = 'تعديل المنتج: ' + p.title;
-            document.getElementById('submit-btn-text').textContent = 'تحديث المنتج';
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
-
-            switchAdminTab('products');
-            document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function cancelEditProduct() {
-            resetProductForm();
-        }
-
-        async function toggleProductStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'available' ? 'out' : 'available';
-            const { error } = await _supabase.from('products').update({ status: newStatus }).eq('id', id);
-            if (error) toast('حدث خطأ أثناء التحديث', 'error');
-            else { toast('تم تحديث حالة المنتج'); fetchProducts(); }
-        }
-
-        async function deleteProduct(id, title) {
-            const confirmed = await showConfirm(`هل أنت متأكدة من حذف "${title}" نهائياً من المتجر؟`);
-            if (!confirmed) return;
-            const { error } = await _supabase.from('products').delete().eq('id', id);
-            if (error) toast('حدث خطأ أثناء الحذف', 'error');
-            else { toast('تم حذف المنتج'); if (Number(document.getElementById('p-edit-id').value) === id) resetProductForm(); fetchProducts(); }
-        }
-
-        // ===================== التصنيفات (إدارة) =====================
-        function populateCategorySelect() {
-            const select = document.getElementById('p-category');
-            const current = select.value;
-            select.innerHTML = '<option value="">اختر التصنيف</option>' +
-                categoriesList.map(c => `<option value="${c.id}">${escapeHtml(c.icon || '👗')} ${escapeHtml(c.name)}</option>`).join('');
-            if (current) select.value = current;
-        }
-
-        async function handleAddCategory(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('c-name');
-            const iconInput = document.getElementById('c-icon');
-            const name = nameInput.value.trim();
-            const icon = iconInput.value.trim() || '👗';
-            if (!name) return;
-
-            try {
-                const { error } = await _supabase.from('categories').insert([{ name, icon, sort_order: categoriesList.length }]);
-                if (error) throw error;
-                toast('تم إضافة التصنيف بنجاح 🎉');
-                document.getElementById('add-category-form').reset();
-                await fetchCategories();
-                renderAdminCategories();
-            } catch (err) {
-                if (categoriesTableMissing) {
-                    toast('جدول التصنيفات غير موجود بعد. شغّلي ملف supabase_migration.sql في محرر SQL بمشروع Supabase أولاً.', 'error');
-                } else {
-                    toast('حدث خطأ أثناء إضافة التصنيف: ' + (err.message || err), 'error');
-                }
+        function updateCartQuantity(productId, delta) {
+            const item = cart.find(i => i.id == productId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                cart = cart.filter(i => i.id != productId);
             }
+            renderCart();
         }
 
-        async function deleteCategory(id, name) {
-            const inUse = productsList.filter(p => p.category_id === id).length;
-            const msg = inUse > 0
-                ? `يوجد ${inUse} منتج مرتبط بتصنيف "${name}". سيتم حذف التصنيف وتصبح هذه المنتجات بدون تصنيف. هل تريدين المتابعة؟`
-                : `هل تريدين حذف تصنيف "${name}"؟`;
-            const confirmed = await showConfirm(msg);
-            if (!confirmed) return;
-
-            const { error } = await _supabase.from('categories').delete().eq('id', id);
-            if (error) toast('حدث خطأ أثناء الحذف: ' + (error.message || error), 'error');
-            else {
-                toast('تم حذف التصنيف');
-                if (activeCategoryId === id) activeCategoryId = 'all';
-                await fetchCategories();
-                await fetchProducts();
-                renderAdminCategories();
-            }
+        function removeFromCart(productId) {
+            cart = cart.filter(i => i.id != productId);
+            renderCart();
         }
 
-        function renderAdminCategories() {
-            const container = document.getElementById('admin-categories-list');
-            const hint = document.getElementById('no-categories-hint');
-
-            if (categoriesTableMissing) {
-                container.innerHTML = '';
-                hint.textContent = 'جدول التصنيفات غير موجود بعد في قاعدة البيانات. شغّلي ملف supabase_migration.sql المرفق في محرر SQL الخاص بمشروع Supabase، ثم أعيدي فتح لوحة الإدارة.';
-                hint.classList.remove('hidden');
-                return;
-            }
-
-            if (categoriesList.length === 0) {
-                container.innerHTML = '';
-                hint.textContent = 'لا توجد تصنيفات بعد. أضيفي أول تصنيف من الأعلى.';
-                hint.classList.remove('hidden');
-                return;
-            }
-            hint.classList.add('hidden');
-
-            container.innerHTML = categoriesList.map(c => {
-                const count = productsList.filter(p => p.category_id === c.id).length;
-                return `
-                <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="text-base">${escapeHtml(c.icon || '👗')}</span>
-                        <div>
-                            <span class="font-bold block">${escapeHtml(c.name)}</span>
-                            <span class="text-gray-500">${count} منتج</span>
-                        </div>
-                    </div>
-                    <button onclick="deleteCategory(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
-                </div>`;
-            }).join('');
-        }
-
-        function renderAdminProducts() {
-            const container = document.getElementById('admin-products-list');
-            if (productsList.length === 0) {
-                container.innerHTML = `<p class="text-center text-gray-400 text-xs py-6">لا توجد منتجات بعد.</p>`;
-                return;
-            }
-
-            container.innerHTML = productsList.map(p => {
-                const cat = categoriesList.find(c => c.id === p.category_id);
-                return `
-                <div class="flex items-center justify-between bg-white p-3 rounded-xl border text-xs gap-2">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded-lg shrink-0">
-                        <div class="min-w-0">
-                            <span class="font-bold block truncate">${escapeHtml(p.title)}</span>
-                            <span class="text-gray-500 block truncate">${p.price} ج.م - (${p.status === 'available' ? 'متوفر' : 'منتهي'}) ${cat ? '- ' + escapeHtml(cat.name) : ''}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-1.5 shrink-0">
-                        <button onclick="startEditProduct(${p.id})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded text-[10px] font-bold">تعديل</button>
-                        <button onclick="toggleProductStatus(${p.id}, '${p.status}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold">تغيير الحالة</button>
-                        <button onclick="deleteProduct(${p.id}, '${escapeHtml(p.title).replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded text-[10px] font-bold">حذف</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // ===================== لوحة الإدارة: فتح/غلق وتبويبات =====================
-        function toggleAdminModal() {
-            if (!isAdminLoggedIn) {
-                const pass = prompt('🔐 أدخل كلمة السر الخاصة بمدير متجر دلع الهوانم:');
-                if (pass === ADMIN_PASSWORD) {
-                    isAdminLoggedIn = true;
-                } else if (pass !== null) {
-                    toast('كلمة السر غير صحيحة', 'error');
-                    return;
-                } else return;
-            }
-            const modal = document.getElementById('admin-modal');
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => modal.classList.add('opacity-100'));
-            renderAdminProducts();
-            renderAdminCategories();
-        }
-
-        function closeAdminModal() {
-            const modal = document.getElementById('admin-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('opacity-100');
-        }
-
-        function switchAdminTab(tab) {
-            const tabs = ['products', 'categories'];
-            tabs.forEach(t => {
-                document.getElementById('admin-tab-' + t).classList.toggle('hidden', t !== tab);
-                const btn = document.getElementById('admin-tab-btn-' + t);
-                if (t === tab) {
-                    btn.classList.add('border-rose-600', 'text-rose-700');
-                    btn.classList.remove('border-transparent', 'text-gray-500');
-                } else {
-                    btn.classList.remove('border-rose-600', 'text-rose-700');
-                    btn.classList.add('border-transparent', 'text-gray-500');
-                }
-            });ش
-        }
-
-        // ===================== السلة والطلبات عبر الواتساب =====================
-        function addToCart(id, evt) {
-            const p = productsList.find(item => item.id === id);
-            if (!p) return;
-            const inCart = cart.find(item => item.id === id);
-            if (inCart) inCart.qty++;
-            else cart.push({ id: p.id, title: p.title, price: p.price, image: p.image, qty: 1 });
-
-            updateCartUI();
-            toggleCartDrawer(true);
-            toast(`تمت إضافة "${p.title}" للسلة`);
-
-            if (evt && evt.currentTarget) {
-                evt.currentTarget.classList.add('add-pulse');
-                setTimeout(() => evt.currentTarget.classList.remove('add-pulse'), 300);
-            }
-        }
-
-        function updateCartUI() {
-            document.getElementById('cart-badge').innerText = cart.reduce((s, i) => s + i.qty, 0);
+        function renderCart() {
+            const badge = document.getElementById('cart-badge');
             const container = document.getElementById('cart-items');
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalCount;
+
             if (cart.length === 0) {
-                container.innerHTML = `<p class="text-center text-gray-400 text-xs py-8">السلة فارغة حالياً.</p>`;
-                document.getElementById('cart-total').innerText = '0 ج.م';
-                document.getElementById('cart-discount').innerText = '0 ج.م';
+                container.innerHTML = `<div class="text-center py-12 text-xs" style="color: var(--ink-muted);"><i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>السلة فارغة حالياً</div>`;
+                document.getElementById('cart-summary').classList.add('hidden');
                 return;
             }
 
-            let rawTotal = 0, totalQty = 0;
-            container.innerHTML = cart.map(i => {
-                rawTotal += i.price * i.qty;
-                totalQty += i.qty;
-                return `
-                    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                        <img src="${escapeHtml(i.image)}" class="w-14 h-14 object-cover rounded-xl">
-                        <div class="flex-grow min-w-0">
-                            <h4 class="font-bold text-xs text-gray-900 truncate">${escapeHtml(i.title)}</h4>
-                            <span class="text-xs text-rose-600 font-black">${i.price} ج.م</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border shrink-0">
-                            <button onclick="changeQty(${i.id}, -1)" class="text-xs font-bold px-1 text-gray-600">-</button>
-                            <span class="text-xs font-bold">${i.qty}</span>
-                            <button onclick="changeQty(${i.id}, 1)" class="text-xs font-bold px-1 text-gray-600">+</button>
-                        </div>
+            document.getElementById('cart-summary').classList.remove('hidden');
+            container.innerHTML = cart.map(item => `
+                <div class="card p-3 rounded-xl flex items-center gap-3">
+                    <img src="${escapeHtml(item.image)}" class="w-14 h-14 object-cover rounded-lg shrink-0" style="background: var(--sand);">
+                    <div class="flex-grow min-w-0">
+                        <h4 class="text-xs font-bold truncate" style="color: var(--ink);">${escapeHtml(item.title)}</h4>
+                        <p class="text-xs font-semibold" style="color: var(--rosewood-deep);">${item.price} ج.م</p>
                     </div>
-                `;
-            }).join('');
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateCartQuantity('${item.id}', -1)" class="w-6 h-6 rounded-md btn-outline text-xs flex items-center justify-center font-bold">-</button>
+                        <span class="text-xs font-bold px-1">${item.quantity}</span>
+                        <button onclick="updateCartQuantity('${item.id}', 1)" class="w-6 h-6 rounded-md btn-outline text-xs flex items-center justify-center font-bold">+</button>
+                        <button onclick="removeFromCart('${item.id}')" class="text-red-500 hover:text-red-700 text-xs mr-1"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
 
-            const extraDiscount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
-            document.getElementById('cart-discount').innerText = `${extraDiscount} ج.م`;
-            document.getElementById('cart-total').innerText = `${rawTotal - extraDiscount} ج.م`;
-        }
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = totalCount > 1 ? (totalCount - 1) * 50 : 0;
+            const finalTotal = Math.max(0, subtotal - discount);
 
-        function changeQty(id, delta) {
-            const item = cart.find(i => i.id === id);
-            if (item) {
-                item.qty += delta;
-                if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
-            }
-            updateCartUI();
+            document.getElementById('cart-discount').textContent = `${discount} ج.م`;
+            document.getElementById('cart-total').textContent = `${finalTotal} ج.م`;
         }
 
         function toggleCartDrawer(show) {
             const drawer = document.getElementById('cart-drawer');
             if (show) {
                 drawer.classList.remove('hidden');
-                requestAnimationFrame(() => { drawer.classList.add('opacity-100', 'is-open'); });
+                requestAnimationFrame(() => {
+                    drawer.classList.add('opacity-100', 'is-open');
+                });
             } else {
-                drawer.classList.remove('opacity-100', 'is-open');
-                setTimeout(() => drawer.classList.add('hidden'), 320);
+                drawer.classList.remove('is-open', 'opacity-100');
+                setTimeout(() => drawer.classList.add('hidden'), 250);
             }
         }
 
         function onPaymentMethodChange() {
-            const selected = document.querySelector('input[name="payment-method"]:checked').value;
-            const box = document.getElementById('payment-details');
-
-            if (selected === 'cod') {
-                box.classList.add('hidden');
-                box.innerHTML = '';
-                return;
-            }
-
-            const info = PAYMENT_INFO[selected];
-            if (!info) { box.classList.add('hidden'); return; }
-
-            if (!info.number) {
-                box.innerHTML = `<p>سيتم تأكيد بيانات الدفع بـ ${escapeHtml(info.label)} معكِ مباشرة عبر الواتساب بعد إرسال الطلب.</p>`;
-                box.classList.remove('hidden');
-                return;
-            }
-
-            box.innerHTML = `
-                <p>حوّلي المبلغ الإجمالي على رقم ${escapeHtml(info.label)} التالي، ثم اضغطي "تأكيد الطلب" وابعتي صورة إيصال التحويل في نفس محادثة الواتساب:</p>
-                <div class="flex items-center justify-between bg-white border rounded-lg px-3 py-2 font-black text-rose-700 text-sm">
-                    <span dir="ltr">${escapeHtml(info.number)}</span>
-                    <button type="button" onclick="copyToClipboard('${escapeHtml(info.number)}')" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded-md transition">نسخ الرقم</button>
-                </div>`;
-            box.classList.remove('hidden');
-        }
-
-        function copyToClipboard(text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => toast('تم نسخ الرقم')).catch(() => toast('تعذر النسخ، انسخيه يدوياً', 'error'));
+            const method = document.querySelector('input[name="payment-method"]:checked')?.value;
+            const detailsBox = document.getElementById('payment-details');
+            if (method && PAYMENT_INFO[method]) {
+                const info = PAYMENT_INFO[method];
+                detailsBox.innerHTML = `<strong>تحويل إلى ${info.label}:</strong> ${info.number}<br>برجاء إرفاق صورة الشاشات في الواتساب بعد التحويل.`;
+                detailsBox.classList.remove('hidden');
             } else {
-                toast('تعذر النسخ، انسخيه يدوياً', 'error');
+                detailsBox.classList.add('hidden');
             }
         }
 
         function sendOrderWhatsApp() {
-            if (cart.length === 0) return toast('السلة فارغة', 'error');
+            if (cart.length === 0) { toast('السلة فارغة!', 'error'); return; }
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
             const address = document.getElementById('cust-address').value.trim();
-            if (!name || !phone || !address) return toast('يرجى ملء كافة البيانات للتأكيد', 'error');
 
-            const itemsText = cart.map(i => `▪️ ${i.title} (الكمية: ${i.qty}) - السعر: ${i.price * i.qty} ج`).join('%0A');
-            const total = document.getElementById('cart-total').innerText;
-            const discount = document.getElementById('cart-discount').innerText;
-
-            const paymentValue = document.querySelector('input[name="payment-method"]:checked').value;
-            let paymentText = 'الدفع عند الاستلام (كاش)';
-            if (paymentValue !== 'cod') {
-                const info = PAYMENT_INFO[paymentValue];
-                paymentText = info.number ? `${info.label} (تم التحويل على ${info.number} - سيتم إرسال إيصال التحويل)` : `${info.label} (سيتم تأكيد التحويل مباشرة)`;
+            if (!name || !phone || !address) {
+                toast('يرجى ملء جميع البيانات المطلوب التواصل بها', 'error');
+                return;
             }
 
-            const message = `مرحباً متجر *دلع الهوانم* 👋%0A` +
-                `طلب جديد من الموقع:%0A%0A` +
-                `👤 *الاسم:* ${encodeURIComponent(name)}%0A` +
-                `📱 *الهاتف:* ${encodeURIComponent(phone)}%0A` +
-                `📍 *العنوان:* ${encodeURIComponent(address)}%0A%0A` +
-                `🛍️ *الطلبات:*%0A${itemsText}%0A%0A` +
-                `🎉 *الخصم المستحق:* ${discount}%0A` +
-                `💰 *الإجمالي النهائي:* ${total}%0A` +
-                `💳 *طريقة الدفع:* ${encodeURIComponent(paymentText)}`;
+            const methodKey = document.querySelector('input[name="payment-method"]:checked')?.value || 'cod';
+            const methodNames = { cod: 'الدفع عند الاستلام', vodafone_cash: 'فودافون كاش', instapay: 'إنستاباي' };
+            const methodName = methodNames[methodKey] || 'كاش';
 
-            window.open(`https://wa.me/201065852975?text=${message}`, '_blank');
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = totalCount > 1 ? (totalCount - 1) * 50 : 0;
+            const finalTotal = Math.max(0, subtotal - discount);
+
+            let msg = `🌸 *طلب جديد من متجر دلع الهوانم* 🌸\n\n`;
+            msg += `👤 *الاسم:* ${name}\n`;
+            msg += `📱 *رقم الهاتف:* ${phone}\n`;
+            msg += `📍 *العنوان:* ${address}\n`;
+            msg += `💳 *طريقة الدفع:* ${methodName}\n\n`;
+            msg += `🛍️ *الطلبات:*\n`;
+            cart.forEach((item, idx) => {
+                msg += `${idx + 1}. ${item.title} × ${item.quantity} = ${item.price * item.quantity} ج.م\n`;
+            });
+            msg += `\n💰 *المجموع:* ${subtotal} ج.م\n`;
+            if (discount > 0) msg += `🎁 *خصم قطع متعددة:* -${discount} ج.م\n`;
+            msg += `✨ *الإجمالي النهائي:* ${finalTotal} ج.م\n`;
+
+            const url = `https://wa.me/201065852975?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         }
 
-        // بداية التشغيل
-        initStore();
-    
-        // ===================== V3 Premium Experience =====================
-        let wishlist = JSON.parse(localStorage.getItem('dalaa_wishlist_v3') || '[]');
-
-        function isWishlisted(id) {
-            return wishlist.includes(Number(id));
-        }
-
-        function toggleWishlist(id, evt) {
-            id = Number(id);
-            if (isWishlisted(id)) {
-                wishlist = wishlist.filter(x => x !== id);
-                toast('تمت إزالة المنتج من المفضلة', 'info');
-            } else {
-                wishlist.push(id);
-                toast('تمت إضافة المنتج إلى المفضلة');
-            }
-            localStorage.setItem('dalaa_wishlist_v3', JSON.stringify(wishlist));
-            renderProducts();
-            updateWishlistUI();
-            if (evt) evt.stopPropagation();
-        }
-
-        function updateWishlistUI() {
-            const count = document.getElementById('wishlist-count');
-            if (count) count.textContent = wishlist.length;
-            const badge = document.getElementById('wishlist-badge');
-            if (badge) badge.textContent = wishlist.length;
-        }
-
-        function openQuickView(id) {
-            const p = productsList.find(item => Number(item.id) === Number(id));
-            if (!p) return;
-            const modal = document.getElementById('quick-view-modal');
-            document.getElementById('qv-image').src = p.image || '';
-            document.getElementById('qv-image').alt = p.title || '';
-            document.getElementById('qv-title').textContent = p.title || '';
-            document.getElementById('qv-desc').textContent = p.desc || 'قطعة مميزة من تشكيلة دلع الهوانم.';
-            document.getElementById('qv-price').innerHTML = `${p.price} <small>ج.م</small>`;
-            document.getElementById('qv-old-price').textContent = p.old_price ? `${p.old_price} ج.م` : '';
-            const status = document.getElementById('qv-status');
-            status.textContent = p.status === 'available' ? 'متاح الآن' : 'غير متوفر حالياً';
-            status.className = p.status === 'available'
-                ? 'qv-status available' : 'qv-status unavailable';
-            const addBtn = document.getElementById('qv-add');
-            addBtn.disabled = p.status !== 'available';
-            addBtn.textContent = p.status === 'available' ? 'إضافة إلى السلة' : 'غير متوفر';
-            addBtn.onclick = () => {
-                if (p.status === 'available') {
-                    addToCart(p.id);
-                    closeQuickView();
+        /* --- لوحة الإدارة --- */
+        function toggleAdminModal() {
+            if (!isAdminLoggedIn) {
+                const pass = prompt("أدخلي كلمة مرور لوحة الإدارة:");
+                if (pass !== ADMIN_PASSWORD) {
+                    if (pass !== null) toast("كلمة المرور غير صحيحة", "error");
+                    return;
                 }
-            };
-            const wishBtn = document.getElementById('qv-wish');
-            wishBtn.innerHTML = isWishlisted(p.id) ? '<i class="fa-solid fa-heart"></i> في المفضلة' : '<i class="fa-regular fa-heart"></i> حفظ في المفضلة';
-            wishBtn.onclick = () => {
-                toggleWishlist(p.id);
-                wishBtn.innerHTML = isWishlisted(p.id) ? '<i class="fa-solid fa-heart"></i> في المفضلة' : '<i class="fa-regular fa-heart"></i> حفظ في المفضلة';
-            };
-            modal.classList.remove('hidden');
-            requestAnimationFrame(() => modal.classList.add('show'));
-            document.body.classList.add('modal-open');
-        }
-
-        function closeQuickView() {
-            const modal = document.getElementById('quick-view-modal');
-            if (!modal) return;
-            modal.classList.remove('show');
-            setTimeout(() => modal.classList.add('hidden'), 220);
-            document.body.classList.remove('modal-open');
-        }
-
-        function scrollToProducts() {
-            document.getElementById('products-heading')?.scrollIntoView({behavior:'smooth', block:'start'});
-        }
-
-        function showWishlistOnly() {
-            const ids = new Set(wishlist.map(Number));
-            const filtered = productsList.filter(p => ids.has(Number(p.id)));
-            const grid = document.getElementById('products-grid');
-            const heading = document.getElementById('products-heading');
-            activeCategoryId = 'wishlist';
-            heading.innerHTML = '<span class="heading-kicker">SAVED</span> المفضلة';
-            if (!filtered.length) {
-                grid.innerHTML = `<div class="empty-state col-span-full"><i class="fa-regular fa-heart"></i><h3>المفضلة فارغة</h3><p>اضغطي على القلب بجانب أي قطعة لحفظها هنا.</p></div>`;
-            } else {
-                grid.innerHTML = filtered.map(renderPremiumProductCard).join('');
+                isAdminLoggedIn = true;
             }
-            renderCategoryTabs();
-            scrollToProducts();
+            populateCategorySelect();
+            renderAdminProducts();
+            renderAdminCategories();
+            const modal = document.getElementById('admin-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('opacity-100'));
         }
 
-        // Replace category/product rendering with the V3 presentation layer.
-        function renderCategoryTabs() {
-            const wrap = document.getElementById('category-tabs');
-            const allBtn = `<button onclick="selectCategory('all')" class="cat-mini ${activeCategoryId === 'all' ? 'active' : ''}"><span>الكل</span></button>`;
-            const catBtns = categoriesList.map(c => `
-                <button onclick="selectCategory(${c.id})" class="cat-mini ${activeCategoryId === c.id ? 'active' : ''}">
-                    <span>${escapeHtml(c.name)}</span>
-                </button>`).join('');
-            wrap.innerHTML = allBtn + catBtns;
-            updateWishlistUI();
+        function closeAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 250);
         }
 
-        function selectCategory(id) {
-            activeCategoryId = id;
-            renderCategoryTabs();
-            renderProducts();
-            scrollToProducts();
+        function switchAdminTab(tab) {
+            const btnProd = document.getElementById('admin-tab-btn-products');
+            const btnCat = document.getElementById('admin-tab-btn-categories');
+            const tabProd = document.getElementById('admin-tab-products');
+            const tabCat = document.getElementById('admin-tab-categories');
+
+            if (tab === 'products') {
+                btnProd.style.borderColor = 'var(--rosewood)';
+                btnProd.style.color = 'var(--rosewood)';
+                btnCat.style.borderColor = 'transparent';
+                btnCat.style.color = 'var(--ink-muted)';
+                tabProd.classList.remove('hidden');
+                tabCat.classList.add('hidden');
+            } else {
+                btnCat.style.borderColor = 'var(--rosewood)';
+                btnCat.style.color = 'var(--rosewood)';
+                btnProd.style.borderColor = 'transparent';
+                btnProd.style.color = 'var(--ink-muted)';
+                tabCat.classList.remove('hidden');
+                tabProd.classList.add('hidden');
+            }
         }
 
-        function renderPremiumProductCard(p) {
-            const liked = isWishlisted(p.id);
-            return `
-                <article class="product-card-v3 anim-fade-in">
-                    <div class="product-media">
-                        <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" loading="lazy">
-                        <div class="media-shade"></div>
-                        ${p.old_price ? `<span class="sale-tag">عرض</span>` : ''}
-                        <button class="wish-btn ${liked ? 'liked' : ''}" onclick="toggleWishlist(${p.id}, event)" aria-label="المفضلة">
-                            <i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                        </button>
-                        <button class="quick-btn" onclick="openQuickView(${p.id})"><i class="fa-solid fa-expand"></i><span>عرض سريع</span></button>
-                    </div>
-                    <div class="product-info-v3">
-                        <div class="product-meta">دلع الهوانم <span></span> ${p.status === 'available' ? 'متاح' : 'غير متوفر'}</div>
-                        <h3>${escapeHtml(p.title)}</h3>
-                        <p>${escapeHtml(p.desc || 'تفاصيل أنيقة بخامة مختارة بعناية.')}</p>
-                        <div class="product-bottom">
-                            <div class="price-v3"><strong>${p.price}</strong><small>ج.م</small>${p.old_price ? `<del>${p.old_price}</del>` : ''}</div>
-                            ${p.status === 'available'
-                                ? `<button class="add-v3" onclick="addToCart(${p.id}, event)"><i class="fa-solid fa-plus"></i><span>أضف للسلة</span></button>`
-                                : `<button class="add-v3 disabled" disabled>غير متوفر</button>`}
+        function populateCategorySelect() {
+            const sel = document.getElementById('p-category');
+            sel.innerHTML = `<option value="">اختاري التصنيف</option>` + categoriesList.map(c => `
+                <option value="${c.id}">${escapeHtml(c.name)}</option>
+            `).join('');
+        }
+
+        function previewProductImage(e) {
+            const file = e.target.files[0];
+            const wrap = document.getElementById('image-preview-wrap');
+            const img = document.getElementById('image-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    img.src = ev.target.result;
+                    wrap.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function cancelEditProduct() {
+            document.getElementById('add-product-form').reset();
+            document.getElementById('p-edit-id').value = '';
+            document.getElementById('p-existing-image').value = '';
+            document.getElementById('product-form-title').textContent = 'إضافة منتج جديد وتخزينه في Supabase';
+            document.getElementById('submit-btn-text').textContent = 'حفظ ونشر على Supabase';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('image-hint').classList.add('hidden');
+            document.getElementById('image-preview-wrap').classList.add('hidden');
+        }
+
+        async function handleProductFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('p-edit-id').value;
+            const title = document.getElementById('p-title').value.trim();
+            const category_id = document.getElementById('p-category').value;
+            const price = parseFloat(document.getElementById('p-price').value);
+            const old_price_val = document.getElementById('p-old-price').value;
+            const old_price = old_price_val ? parseFloat(old_price_val) : null;
+            const desc = document.getElementById('p-desc').value.trim();
+            const status = document.getElementById('p-status').value;
+            const fileInput = document.getElementById('p-image-file');
+
+            let imageUrl = document.getElementById('p-existing-image').value;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const { data: uploadData, error: uploadError } = await _supabase.storage.from('products').upload(fileName, file);
+                if (!uploadError && uploadData) {
+                    const { data: publicUrlData } = _supabase.storage.from('products').getPublicUrl(fileName);
+                    imageUrl = publicUrlData.publicUrl;
+                } else {
+                    imageUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                }
+            }
+
+            if (!imageUrl) {
+                imageUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80";
+            }
+
+            const payload = { title, category_id: category_id ? parseInt(category_id) : null, price, old_price, desc, status, image: imageUrl };
+
+            try {
+                if (editId) {
+                    const { error } = await _supabase.from('products').update(payload).eq('id', editId);
+                    if (error) throw error;
+                    toast("تم تعديل المنتج بنجاح");
+                } else {
+                    const { error } = await _supabase.from('products').insert([payload]);
+                    if (error) throw error;
+                    toast("تمت إضافة المنتج بنجاح");
+                }
+                cancelEditProduct();
+                fetchProducts();
+            } catch (err) {
+                toast("حدث خطأ: " + err.message, "error");
+            }
+        }
+
+        function renderAdminProducts() {
+            const list = document.getElementById('admin-products-list');
+            if (productsList.length === 0) {
+                list.innerHTML = `<p class="text-xs" style="color: var(--ink-muted);">لا توجد منتجات مسجلة.</p>`;
+                return;
+            }
+            list.innerHTML = productsList.map(p => `
+                <div class="card p-3 rounded-lg flex items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-3">
+                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded-md" style="background: var(--sand);">
+                        <div>
+                            <p class="font-bold">${escapeHtml(p.title)}</p>
+                            <p style="color: var(--rosewood);">${p.price} ج.م</p>
                         </div>
                     </div>
-                </article>`;
+                    <div class="flex gap-2">
+                        <button onclick="editProduct('${p.id}')" class="btn-outline px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteProduct('${p.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function renderProducts() {
-            const grid = document.getElementById('products-grid');
-            const heading = document.getElementById('products-heading');
-            if (activeCategoryId === 'wishlist') {
-                showWishlistOnly();
-                return;
+        function editProduct(id) {
+            const p = productsList.find(item => item.id == id);
+            if (!p) return;
+            document.getElementById('p-edit-id').value = p.id;
+            document.getElementById('p-existing-image').value = p.image || '';
+            document.getElementById('p-title').value = p.title;
+            document.getElementById('p-category').value = p.category_id || '';
+            document.getElementById('p-price').value = p.price;
+            document.getElementById('p-old-price').value = p.old_price || '';
+            document.getElementById('p-desc').value = p.desc || '';
+            document.getElementById('p-status').value = p.status || 'available';
+
+            document.getElementById('product-form-title').textContent = 'تعديل بيانات المنتج';
+            document.getElementById('submit-btn-text').textContent = 'حفظ التعديلات';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            document.getElementById('image-hint').classList.remove('hidden');
+
+            if (p.image) {
+                document.getElementById('image-preview').src = p.image;
+                document.getElementById('image-preview-wrap').classList.remove('hidden');
             }
-            let filtered = productsList;
-            if (activeCategoryId !== 'all') filtered = productsList.filter(p => p.category_id === activeCategoryId);
-            heading.innerHTML = activeCategoryId === 'all'
-                ? '<span class="heading-kicker">THE COLLECTION</span> المنتجات الجديدة'
-                : `<span class="heading-kicker">COLLECTION</span> ${escapeHtml((categoriesList.find(c => c.id === activeCategoryId) || {}).name || 'التشكيلة')}`;
-            if (!filtered.length) {
-                grid.innerHTML = `<div class="empty-state col-span-full"><i class="fa-regular fa-image"></i><h3>لا توجد منتجات هنا حالياً</h3><p>سنضيف قطعاً جديدة قريباً.</p></div>`;
-                return;
-            }
-            grid.innerHTML = filtered.map(renderPremiumProductCard).join('');
-            updateWishlistUI();
         }
 
-        // Ensure V3 UI state after original store boot.
-        const _initStoreV3 = initStore;
-        initStore = async function() {
-            await _initStoreV3();
-            updateWishlistUI();
-            setTimeout(() => document.getElementById('loading-skeleton')?.classList.add('hidden'), 50);
-        };
+        async function deleteProduct(id) {
+            const confirmed = await showConfirm("هل أنتِ متأكدة من حذف هذا المنتج؟");
+            if (!confirmed) return;
+            try {
+                const { error } = await _supabase.from('products').delete().eq('id', id);
+                if (error) throw error;
+                toast("تم حذف المنتج");
+                fetchProducts();
+            } catch (err) {
+                toast("خطأ في الحذف: " + err.message, "error");
+            }
+        }
 
-        window.addEventListener('keydown', e => {
-            if (e.key === 'Escape') closeQuickView();
-        });
+        async function handleAddCategory(e) {
+            e.preventDefault();
+            const name = document.getElementById('c-name').value.trim();
+            const icon = document.getElementById('c-icon').value.trim();
+            if (!name) return;
 
-</script>
+            try {
+                const { error } = await _supabase.from('categories').insert([{ name, icon }]);
+                if (error) throw error;
+                toast("تمت إضافة التصنيف");
+                document.getElementById('add-category-form').reset();
+                fetchCategories();
+            } catch (err) {
+                toast("حدث خطأ: " + err.message, "error");
+            }
+        }
+
+        function renderAdminCategories() {
+            const list = document.getElementById('admin-categories-list');
+            const hint = document.getElementById('no-categories-hint');
+
+            if (categoriesList.length === 0) {
+                list.innerHTML = '';
+                hint.classList.remove('hidden');
+                return;
+            }
+            hint.classList.add('hidden');
+            list.innerHTML = categoriesList.map(c => `
+                <div class="card p-2.5 rounded-lg flex items-center justify-between text-xs">
+                    <span class="font-bold">${c.icon ? c.icon + ' ' : ''}${escapeHtml(c.name)}</span>
+                    <button onclick="deleteCategory(${c.id})" class="bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteCategory(id) {
+            const confirmed = await showConfirm("هل أنتِ متأكدة من حذف هذا التصنيف؟");
+            if (!confirmed) return;
+            try {
+                const { error } = await _supabase.from('categories').delete().eq('id', id);
+                if (error) throw error;
+                toast("تم حذف التصنيف");
+                fetchCategories();
+            } catch (err) {
+                toast("خطأ في الحذف: " + err.message, "error");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initStore);
+    </script>
+</body>
 </html>
+HTMLEOF
