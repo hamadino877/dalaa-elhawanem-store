@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دلع الهوانم - أزياء نسائية راقية</title>
+    <title>دلع الهوانم V3 - أزياء نسائية راقية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,6 +21,7 @@
             --sand: #F1E7D9;
             --line: #E6DACB;
         }
+        html { scroll-behavior: smooth; }
         body { font-family: 'Cairo', sans-serif; background: var(--paper); color: var(--ink); }
         .font-display { font-family: 'El Messiri', 'Cairo', sans-serif; }
         .divider-gold { height: 1px; background: var(--gold); opacity: .55; }
@@ -35,29 +36,50 @@
         .tab-pill.is-active { color: var(--ink); border-color: var(--gold); }
         .tab-scroll::-webkit-scrollbar { display: none; }
         .tab-scroll { scrollbar-width: none; }
-        .product-card img { transition: transform .5s ease; }
-        .product-card:hover img { transform: scale(1.04); }
+
+        /* ===== Hero Slider ===== */
+        .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+        .hero-slide.is-active { opacity: 1; pointer-events: auto; }
+        .hero-slide img { transform: scale(1.08); transition: transform 6s ease; }
+        .hero-slide.is-active img { transform: scale(1); }
+        .hero-dot { width: 8px; height: 8px; border-radius: 9999px; background: rgba(255,255,255,.45); transition: all .3s ease; cursor: pointer; }
+        .hero-dot.is-active { width: 24px; background: var(--gold-soft); }
+
+        /* ===== Category cards ===== */
+        .cat-card { transition: transform .35s ease, box-shadow .35s ease; }
+        .cat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 30px -12px rgba(42,33,29,.28); }
+
+        /* ===== Product cards ===== */
+        .product-card img.pimg { transition: transform .6s ease; }
+        .product-card:hover img.pimg { transform: scale(1.06); }
         .tag-sale { border: 1px solid var(--gold); color: var(--ink); background: rgba(255,255,255,.92); }
+        .card-action-btn { width: 34px; height: 34px; border-radius: 9999px; background: rgba(255,255,255,.94); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transition: all .2s ease; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        .card-action-btn:hover { border-color: var(--rosewood); transform: scale(1.08); }
+        .wish-btn.is-wished { background: var(--rosewood); border-color: var(--rosewood); color: #fff !important; }
+
         @keyframes heroIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hero-reveal { animation: heroIn .6s cubic-bezier(.2,.7,.2,1) both; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes popIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
         @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .anim-pop-in { animation: popIn .25s cubic-bezier(.2,.8,.3,1.1) both; }
         .anim-toast-in { animation: toastIn .25s ease both; }
-        #cart-drawer-panel { transform: translateX(100%); transition: transform .32s cubic-bezier(.16,1,.3,1); }
-        #cart-drawer.is-open #cart-drawer-panel { transform: translateX(0); }
-        #cart-drawer, #admin-modal, #confirm-modal { transition: opacity .25s ease; }
+        #cart-drawer-panel, #wish-drawer-panel { transform: translateX(100%); transition: transform .32s cubic-bezier(.16,1,.3,1); }
+        #cart-drawer.is-open #cart-drawer-panel, #wish-drawer.is-open #wish-drawer-panel { transform: translateX(0); }
+        #cart-drawer, #wish-drawer, #admin-modal, #confirm-modal, #qv-modal { transition: opacity .25s ease; }
         @keyframes addPulse { 0% { transform: scale(1); } 40% { transform: scale(.95); } 100% { transform: scale(1); } }
         .add-pulse { animation: addPulse .28s ease; }
         .skeleton { background: linear-gradient(90deg, var(--sand) 25%, #E8DCC9 37%, var(--sand) 63%); background-size: 400% 100%; animation: skeletonShine 1.5s ease infinite; }
         @keyframes skeletonShine { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+        @keyframes heartPop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+        .heart-pop { animation: heartPop .3s ease; }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
         }
     </style>
+<base target="_blank">
+<base target="_blank">
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col pb-16 md:pb-0">
     <!-- 1. شريط معلومات علوي -->
     <div class="text-white py-2 px-4 text-center text-[11px] md:text-xs sticky top-0 z-50" style="background: var(--ink);">
         <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-1">
@@ -71,51 +93,69 @@
             </span>
         </div>
     </div>
+
     <!-- 2. الهيدر -->
     <header class="border-b sticky top-[30px] z-40" style="background: var(--surface); border-color: var(--line);">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
-            <a href="#" class="flex items-center gap-3">
-                <div class="monogram">د</div>
-                <div>
-                    <span class="font-display text-xl md:text-2xl font-bold block leading-tight" style="color: var(--ink);">دلع الهوانم</span>
-                    <span class="text-[10px] tracking-wide block" style="color: var(--ink-muted);">أزياء نسائية راقية</span>
-                </div>
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3 flex-wrap lg:flex-nowrap">
+            <a href="#" onclick="scrollToId('hero-section'); return false;" class="flex flex-col justify-center py-1">
+                <span class="font-display text-xl md:text-2xl font-bold block leading-tight" style="color: var(--ink);">دلع الهوانم</span>
+                <span class="text-[10px] tracking-wide block" style="color: var(--gold);">أزياء نسائية راقية</span>
             </a>
+            <!-- قائمة الأقسام المنفردة -->
+            <nav id="category-tabs" class="hidden lg:flex items-center gap-1 flex-1 justify-center overflow-x-auto tab-scroll order-3 lg:order-2 w-full lg:w-auto lg:px-3"></nav>
             <div class="flex items-center gap-2">
                 <button onclick="toggleAdminModal()" class="btn-outline px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-lock" style="color: var(--rosewood);"></i>
                     <span class="hidden md:inline">لوحة الإدارة</span>
                 </button>
+                <button onclick="toggleWishlistDrawer(true)" class="btn-outline relative px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-heart" style="color: var(--rosewood);"></i>
+                    <span class="hidden md:inline">المفضلة</span>
+                    <span id="wish-badge" class="text-white text-[10px] rounded-full w-5 h-5 hidden items-center justify-center" style="background: var(--rosewood);">0</span>
+                </button>
                 <button onclick="toggleCartDrawer(true)" class="btn-outline relative px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
                     <i class="fa-solid fa-bag-shopping" style="color: var(--rosewood);"></i>
-                    <span>السلة</span>
+                    <span class="hidden sm:inline">السلة</span>
                     <span id="cart-badge" class="text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center" style="background: var(--rosewood);">0</span>
                 </button>
             </div>
         </div>
-        <!-- تبويبات التصنيفات -->
-        <div style="border-top: 1px solid var(--line); background: var(--surface);">
-            <div id="category-tabs" class="max-w-6xl mx-auto px-4 flex gap-5 overflow-x-auto tab-scroll"></div>
-        </div>
     </header>
-    <!-- 3. الهيرو -->
-    <section class="px-4 pt-12 pb-10 md:pt-16 md:pb-14">
-        <div class="max-w-6xl mx-auto">
-            <div class="max-w-2xl hero-reveal">
-                <h1 class="font-display text-3xl md:text-[2.75rem] leading-[1.25] font-semibold" style="color: var(--ink);">
-                    أرقى الموديلات، بأعلى خامة، وأنسب سعر
-                </h1>
-                <div class="divider-gold w-14 my-4"></div>
-                <p class="text-sm md:text-base leading-relaxed" style="color: var(--ink-muted);">
-                    فرعنا الرئيسي في المحلة الكبرى - شارع البهلوان. التوصيل متاح لجميع المحافظات، مع إمكانية المعاينة قبل الاستلام.
-                </p>
+
+    <!-- 3. هيرو بانر احترافي (سلايدر) -->
+    <section id="hero-section" class="relative overflow-hidden" style="height: min(72vh, 560px); min-height: 400px;">
+        <div id="hero-slides" class="absolute inset-0"></div>
+        <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(to left, rgba(42,33,29,.72) 0%, rgba(42,33,29,.35) 45%, rgba(42,33,29,.05) 75%);"></div>
+        <div class="relative z-10 max-w-6xl mx-auto px-4 h-full flex items-center">
+            <div id="hero-content" class="max-w-xl hero-reveal"></div>
+        </div>
+        <div id="hero-dots" class="absolute bottom-5 right-4 md:right-8 z-20 flex gap-2"></div>
+        <button onclick="goHero(heroIndex - 1)" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full items-center justify-center text-white hover:scale-110 transition" style="background: rgba(42,33,29,.45); backdrop-filter: blur(4px);">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button onclick="goHero(heroIndex + 1)" class="hidden md:flex absolute left-16 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full items-center justify-center text-white hover:scale-110 transition" style="background: rgba(42,33,29,.45); backdrop-filter: blur(4px);">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+    </section>
+
+    <!-- 4. بطاقات التصنيفات بصور فعلية -->
+    <section id="categories-section" class="max-w-6xl mx-auto px-4 pt-12 pb-4 scroll-mt-28">
+        <div class="flex items-end justify-between mb-6">
+            <div>
+                <h2 class="font-display text-xl md:text-2xl font-semibold" style="color: var(--ink);">تسوقي حسب القسم</h2>
+                <div class="divider-gold w-14 mt-3"></div>
             </div>
         </div>
+        <div id="category-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
     </section>
-    <!-- 4. المنتجات -->
-    <main class="max-w-6xl mx-auto px-4 pb-6 flex-grow">
+
+    <!-- 5. المنتجات -->
+    <main id="products-section" class="max-w-6xl mx-auto px-4 py-10 flex-grow scroll-mt-28">
         <div class="flex items-end justify-between mb-6">
-            <h2 id="products-heading" class="font-display text-xl md:text-2xl font-semibold" style="color: var(--ink);">المنتجات المتاحة حالياً</h2>
+            <div>
+                <h2 id="products-heading" class="font-display text-xl md:text-2xl font-semibold" style="color: var(--ink);">المنتجات المتاحة حالياً</h2>
+                <div class="divider-gold w-14 mt-3"></div>
+            </div>
         </div>
         <div id="loading-skeleton" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
@@ -129,7 +169,8 @@
         </div>
         <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden"></div>
     </main>
-    <!-- 5. آراء العميلات -->
+
+    <!-- 6. آراء العميلات -->
     <section class="py-14" style="border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface);">
         <div class="max-w-6xl mx-auto px-4">
             <h2 class="font-display text-xl md:text-2xl font-semibold mb-10" style="color: var(--ink);">آراء هوانم المحلة الكبرى والمحافظات</h2>
@@ -152,12 +193,12 @@
             </div>
         </div>
     </section>
-    <!-- 6. الفوتر -->
+
+    <!-- 7. الفوتر -->
     <footer class="pt-12 pb-6" style="background: var(--ink); color: var(--paper);">
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10 pb-8 text-center md:text-right" style="border-bottom: 1px solid rgba(250,245,238,.15);">
             <div>
                 <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
-                    <div class="monogram" style="border-color: var(--gold-soft); color: var(--gold-soft);">د</div>
                     <span class="font-display text-xl font-semibold">دلع الهوانم</span>
                 </div>
                 <p class="text-xs leading-relaxed opacity-70">
@@ -178,10 +219,11 @@
             </div>
         </div>
         <div class="text-center text-xs opacity-50 pt-4">
-            جميع الحقوق محفوظة &copy; 2026 - دلع الهوانم
+            جميع الحقوق محفوظة &copy; 2026 - دلع الهوانم <span class="mx-1" style="color: var(--gold);">•</span> النسخة V3
         </div>
     </footer>
-    <!-- 7. درج سلة التسوق -->
+
+    <!-- 8. درج سلة التسوق -->
     <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
         <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
             <div class="flex justify-between items-center pb-4 mb-4" style="border-bottom: 1px solid var(--line);">
@@ -221,7 +263,52 @@
             </div>
         </div>
     </div>
-    <!-- 8. لوحة الإدارة -->
+
+    <!-- 9. درج المفضلة (Wishlist) -->
+    <div id="wish-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleWishlistDrawer(false)">
+        <div id="wish-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
+            <div class="flex justify-between items-center pb-4 mb-4" style="border-bottom: 1px solid var(--line);">
+                <h3 class="font-display text-lg font-semibold flex items-center gap-2" style="color: var(--ink);"><i class="fa-solid fa-heart" style="color: var(--rosewood);"></i> قائمة المفضلة</h3>
+                <button onclick="toggleWishlistDrawer(false)" class="text-xl font-bold" style="color: var(--ink-muted);">&times;</button>
+            </div>
+            <div id="wish-items" class="space-y-3 flex-grow"></div>
+        </div>
+    </div>
+
+    <!-- 10. نافذة عرض سريع للمنتج (Quick View) -->
+    <div id="qv-modal" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeQuickView()">
+        <div class="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden anim-pop-in grid grid-cols-1 md:grid-cols-2 max-h-[92vh]" style="background: var(--surface);">
+            <div class="relative aspect-square md:aspect-auto md:min-h-[420px]" style="background: var(--sand);">
+                <img id="qv-img" class="absolute inset-0 w-full h-full object-cover" alt="صورة المنتج">
+                <span id="qv-status" class="absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-full"></span>
+            </div>
+            <div class="p-5 flex flex-col gap-3 overflow-y-auto relative">
+                <button onclick="closeQuickView()" class="absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center text-lg" style="color: var(--ink-muted); background: var(--sand);">&times;</button>
+                <span id="qv-cat" class="text-[10px] font-bold tracking-wide" style="color: var(--gold);"></span>
+                <h3 id="qv-title" class="font-display text-lg md:text-xl font-bold leading-snug pl-6" style="color: var(--ink);"></h3>
+                <div id="qv-prices" class="flex items-baseline gap-2"></div>
+                <p id="qv-desc" class="text-xs leading-relaxed" style="color: var(--ink-muted);"></p>
+                <div class="flex items-center gap-3 pt-1">
+                    <span class="text-xs font-bold" style="color: var(--ink);">الكمية:</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="qvChangeQty(-1)" class="w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-sm" style="border-color: var(--line);">-</button>
+                        <span id="qv-qty" class="text-sm font-black w-6 text-center">1</span>
+                        <button onclick="qvChangeQty(1)" class="w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-sm" style="border-color: var(--line);">+</button>
+                    </div>
+                </div>
+                <div class="mt-auto pt-3 space-y-2">
+                    <button id="qv-add-btn" onclick="qvAddToCart()" class="btn-primary w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-plus"></i> أضيفي للسلة
+                    </button>
+                    <button id="qv-wish-btn" onclick="qvToggleWish()" class="btn-outline w-full py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-heart"></i> <span id="qv-wish-text">إضافة للمفضلة</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. لوحة الإدارة -->
     <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
         <div class="w-full max-w-3xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6 anim-pop-in" style="background: var(--surface);">
             <div class="flex justify-between items-center pb-3" style="border-bottom: 1px solid var(--line);">
@@ -289,8 +376,9 @@
             </div>
         </div>
     </div>
-    <!-- 9. نافذة تأكيد عامة -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 flex items-center justify-center p-4">
+
+    <!-- 12. نافذة تأكيد عامة -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[70] hidden opacity-0 flex items-center justify-center p-4">
         <div class="w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 anim-pop-in text-center" style="background: var(--surface);">
             <p id="confirm-modal-text" class="text-sm font-bold" style="color: var(--ink);"></p>
             <div class="flex gap-2">
@@ -299,15 +387,85 @@
             </div>
         </div>
     </div>
-    <!-- 10. حاوية التنبيهات -->
-    <div id="toast-container" class="fixed bottom-4 inset-x-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
+    <!-- 13. شريط تنقل سفلي للموبايل -->
+    <nav class="fixed bottom-0 inset-x-0 z-40 md:hidden" style="background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(42,33,29,.08);">
+        <div class="grid grid-cols-5">
+            <button onclick="scrollToId('hero-section')" class="mnav-btn flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold" data-nav="home" style="color: var(--rosewood);">
+                <i class="fa-solid fa-house text-base"></i>الرئيسية
+            </button>
+            <button onclick="scrollToId('categories-section')" class="mnav-btn flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold" data-nav="cats" style="color: var(--ink-muted);">
+                <i class="fa-solid fa-border-all text-base"></i>الأقسام
+            </button>
+            <button onclick="toggleWishlistDrawer(true)" class="mnav-btn relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold" data-nav="wish" style="color: var(--ink-muted);">
+                <span class="relative">
+                    <i class="fa-solid fa-heart text-base"></i>
+                    <span id="wish-badge-mobile" class="absolute -top-1.5 -left-2 text-white text-[8px] rounded-full w-4 h-4 hidden items-center justify-center" style="background: var(--rosewood);">0</span>
+                </span>المفضلة
+            </button>
+            <button onclick="toggleCartDrawer(true)" class="mnav-btn relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold" data-nav="cart" style="color: var(--ink-muted);">
+                <span class="relative">
+                    <i class="fa-solid fa-bag-shopping text-base"></i>
+                    <span id="cart-badge-mobile" class="absolute -top-1.5 -left-2 text-white text-[8px] rounded-full w-4 h-4 hidden items-center justify-center" style="background: var(--rosewood);">0</span>
+                </span>السلة
+            </button>
+            <a href="https://wa.me/201065852975" target="_blank" rel="noopener" class="flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold" style="color: var(--ink-muted);">
+                <i class="fa-brands fa-whatsapp text-base text-emerald-600"></i>واتساب
+            </a>
+        </div>
+    </nav>
+
+    <!-- 14. حاوية التنبيهات -->
+    <div id="toast-container" class="fixed bottom-20 md:bottom-4 inset-x-0 z-[80] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
     <script>
+        // ==================== Supabase ====================
         const SUPABASE_URL = "https://niuxwiuaiqahnkptlysm.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdXh3aXVhaXFhaG5rcHRseXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTcwOTQsImV4cCI6MjEwNTIzMzA5NH0.efj-duLJhE1xcvaVeFjzcGYGPAEgQJ87nrPp9V10__w";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const ADMIN_PASSWORD = "123456";
         let isAdminLoggedIn = false;
+
+        // ==================== صور Fashion حقيقية ====================
+        const IMGS = {
+            heroBanner: 'https://kimi-web-img.kimi.ai/img/www.hadara-boutique.com/df1174898e8247fd05efb1740e25128138ee0a34.webp',
+            heroAbaya:  'https://kimi-web-img.kimi.ai/img/modestiastudio.nl/d8ae3ccf1ec2d64ef59edd6695fe7b8eddefdfff.jpg',
+            heroSet:    'https://kimi-web-img.kimi.ai/img/www.ina-collection.co.uk/567dbabbd5f19f139ab1ae95969080f28344f22b.webp',
+            abaya:      'https://kimi-web-img.kimi.ai/img/modestiastudio.nl/d8ae3ccf1ec2d64ef59edd6695fe7b8eddefdfff.jpg',
+            dress:      'https://kimi-web-img.kimi.ai/img/cdn.shopify.com/ae493bb1c6b60e8b87e1a79907a1408466cb77ce.jpg',
+            dress2:     'https://kimi-web-img.kimi.ai/img/daintyjewells.com/f0f93d5d49563c16a4704f7dc40182d1ca23b90d',
+            scarf:      'https://kimi-web-img.kimi.ai/img/tieshop.com/0d0493f31f8b0a8bd88643f59e74477ace30c22b.avif',
+            home:       'https://kimi-web-img.kimi.ai/img/i.etsystatic.com/2fa72d9c382405d5a2d4726d3e8c46bf28d174e6.jpg',
+            home2:      'https://kimi-web-img.kimi.ai/img/i.etsystatic.com/610082172da7d0a53fe5e47a2972ccc31b197656.jpg',
+            prayer:     'https://kimi-web-img.kimi.ai/img/www.mymodefa.com/7e997fbc9bf0bcd97ff0e275cdcda3405d4bb4fd.jpg',
+            fallback:   'https://kimi-web-img.kimi.ai/img/www.ina-collection.co.uk/567dbabbd5f19f139ab1ae95969080f28344f22b.webp'
+        };
+
+        const CATEGORY_IMAGE_RULES = [
+            { keys: ['إسدال', 'عباية', 'عبايات', 'عباءة', 'جلابية', 'جلابيات'], img: IMGS.abaya },
+            { keys: ['فستان', 'فساتين', 'دريس', 'سوارية', 'سهرة'], img: IMGS.dress },
+            { keys: ['حجاب', 'طرح', 'شيل', 'سكارف', 'اسكارف', 'بندانة'], img: IMGS.scarf },
+            { keys: ['بيتي', 'بيجاما', 'بيجامة', 'لانج', 'نايت', 'ساتان', 'ترنج'], img: IMGS.home },
+            { keys: ['صلاة', 'صلاحي', 'صلاحية', 'خمار', 'مصلي', 'عباءة صلاة'], img: IMGS.prayer },
+            { keys: ['بنطلون', 'بلوزة', 'تونيك', 'توب'], img: IMGS.dress2 }
+        ];
+
+        function categoryImage(name) {
+            const n = String(name || '');
+            for (const rule of CATEGORY_IMAGE_RULES) {
+                if (rule.keys.some(k => n.includes(k))) return rule.img;
+            }
+            return IMGS.fallback;
+        }
+
+        function productImage(p) {
+            const img = String(p.image || '');
+            if (img && !img.includes('via.placeholder')) return img;
+            const cat = categoriesList.find(c => c.id === p.category_id);
+            return cat ? categoryImage(cat.name) : IMGS.fallback;
+        }
+
+        // ==================== بيانات عامة ====================
         const PAYMENT_INFO = {
             vodafone_cash: { label: 'فودافون كاش', number: '01065852975' },
             instapay: { label: 'إنستاباي (InstaPay)', number: '01065852975' }
@@ -315,11 +473,99 @@
         let categoriesList = [];
         let productsList = [];
         let cart = [];
+        let wishlist = JSON.parse(localStorage.getItem('dh_wishlist_v3') || '[]');
         let activeCategoryId = 'all';
         let categoriesTableMissing = false;
 
+        // ==================== هيرو سلايدر ====================
+        const HERO_SLIDES = [
+            {
+                img: IMGS.heroBanner,
+                kicker: 'تشكيلة 2026 وصلت حديثاً',
+                title: 'أرقى الموديلات، بأعلى خامة، وأنسب سعر',
+                text: 'فرعنا الرئيسي في المحلة الكبرى - شارع البهلوان. التوصيل لجميع المحافظات مع إمكانية المعاينة قبل الاستلام.',
+                cta: 'تسوقي المجموعة كاملة'
+            },
+            {
+                img: IMGS.heroAbaya,
+                kicker: 'قسم الإسدالات والعبايات',
+                title: 'إسدالات فسكوز وساتان بلمسة فاخرة',
+                text: 'قصّات مريحة وخامات مستوردة تليق بكِ في كل المناسبات.',
+                cta: 'شوفي الإسدالات'
+            },
+            {
+                img: IMGS.heroSet,
+                kicker: 'عرض خاص لفترة محدودة',
+                title: 'خصم إضافي 50 جنيه مع كل قطعة ثانية',
+                text: 'اختاري هديتك من أقسام الملابس البيتي والصلاحية والطرح.',
+                cta: 'استفيدي بالعرض'
+            }
+        ];
+        let heroIndex = 0;
+        let heroTimer = null;
+
+        function renderHero() {
+            document.getElementById('hero-slides').innerHTML = HERO_SLIDES.map((s, i) => `
+                <div class="hero-slide ${i === 0 ? 'is-active' : ''}" data-slide="${i}">
+                    <img src="${s.img}" alt="${escapeHtml(s.title)}" class="w-full h-full object-cover ${i === 0 ? '' : 'hidden-img'}" style="${i === 0 ? '' : 'opacity:0'}" onload="this.style.opacity=1">
+                </div>
+            `).join('');
+            document.getElementById('hero-dots').innerHTML = HERO_SLIDES.map((_, i) =>
+                `<span class="hero-dot ${i === 0 ? 'is-active' : ''}" data-dot="${i}" onclick="goHero(${i})"></span>`
+            ).join('');
+            updateHeroContent();
+        }
+
+        function updateHeroContent() {
+            const s = HERO_SLIDES[heroIndex];
+            document.getElementById('hero-content').innerHTML = `
+                <span class="hero-reveal inline-block text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full mb-4" style="background: rgba(173,138,85,.25); color: var(--gold-soft); border: 1px solid rgba(227,213,188,.4); backdrop-filter: blur(4px);">
+                    ${escapeHtml(s.kicker)}
+                </span>
+                <h1 class="hero-reveal font-display text-3xl md:text-[2.6rem] leading-[1.25] font-semibold text-white" style="text-shadow: 0 2px 20px rgba(0,0,0,.35);">
+                    ${escapeHtml(s.title)}
+                </h1>
+                <div class="hero-reveal divider-gold w-14 my-4" style="opacity:.9; height:2px;"></div>
+                <p class="hero-reveal text-sm md:text-base leading-relaxed text-white/90 max-w-lg" style="text-shadow: 0 1px 10px rgba(0,0,0,.4);">
+                    ${escapeHtml(s.text)}
+                </p>
+                <button onclick="scrollToId('products-section')" class="hero-reveal mt-6 font-bold px-7 py-3 rounded-lg text-sm transition hover:scale-[1.03] active:scale-[.98]" style="background: var(--gold); color: var(--ink); box-shadow: 0 8px 24px rgba(0,0,0,.25);">
+                    ${escapeHtml(s.cta)} <i class="fa-solid fa-arrow-left mr-1"></i>
+                </button>
+            `;
+        }
+
+        function goHero(i) {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.hero-dot');
+            slides[heroIndex]?.classList.remove('is-active');
+            heroIndex = (i + HERO_SLIDES.length) % HERO_SLIDES.length;
+            slides[heroIndex]?.classList.add('is-active');
+            dots.forEach((d, di) => d.classList.toggle('is-active', di === heroIndex));
+            updateHeroContent();
+            restartHeroTimer();
+        }
+
+        function restartHeroTimer() {
+            clearInterval(heroTimer);
+            heroTimer = setInterval(() => goHero(heroIndex + 1), 6000);
+        }
+
+        // ==================== أدوات مساعدة ====================
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function scrollToId(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setMobileNavActive('home');
+        }
+
+        function setMobileNavActive(key) {
+            document.querySelectorAll('.mnav-btn').forEach(btn => {
+                const active = btn.dataset.nav === key;
+                btn.style.color = active ? 'var(--rosewood)' : 'var(--ink-muted)';
+            });
         }
 
         function toast(message, type = 'success') {
@@ -358,6 +604,7 @@
             });
         }
 
+        // ==================== تحميل البيانات ====================
         async function initStore() {
             document.getElementById('load-error').classList.add('hidden');
             document.getElementById('loading-skeleton').classList.remove('hidden');
@@ -378,6 +625,7 @@
                 categoriesTableMissing = true;
             }
             renderCategoryTabs();
+            renderCategoryCards();
             populateCategorySelect();
         }
 
@@ -389,6 +637,7 @@
                 document.getElementById('loading-skeleton').classList.add('hidden');
                 document.getElementById('products-grid').classList.remove('hidden');
                 renderProducts();
+                renderCategoryCards();
                 if (isAdminLoggedIn) { renderAdminProducts(); renderAdminCategories(); }
             } catch (err) {
                 console.error('خطأ في جلب المنتجات:', err);
@@ -399,26 +648,64 @@
             }
         }
 
+        // ==================== التصنيفات ====================
         function renderCategoryTabs() {
             const wrap = document.getElementById('category-tabs');
             const allBtn = `
-                <button onclick="selectCategory('all')" class="tab-pill shrink-0 py-3 text-xs font-bold ${activeCategoryId === 'all' ? 'is-active' : ''}">
+                <button onclick="selectCategory('all')" class="tab-pill shrink-0 py-1.5 px-1 text-[11px] font-bold ${activeCategoryId === 'all' ? 'is-active' : ''}">
                     الكل
                 </button>`;
             const catBtns = categoriesList.map(c => `
-                <button onclick="selectCategory(${c.id})" class="tab-pill shrink-0 py-3 text-xs font-bold ${activeCategoryId === c.id ? 'is-active' : ''}">
+                <button onclick="selectCategory(${c.id})" class="tab-pill shrink-0 py-1.5 px-1 text-[11px] font-bold ${activeCategoryId === c.id ? 'is-active' : ''}">
                     ${escapeHtml(c.name)}
                 </button>`).join('');
             wrap.innerHTML = allBtn + catBtns;
+        }
+
+        function renderCategoryCards() {
+            const section = document.getElementById('categories-section');
+            const wrap = document.getElementById('category-cards');
+            if (!categoriesList.length) { section.style.display = 'none'; return; }
+            section.style.display = '';
+            const totalCount = productsList.length;
+            const allCard = `
+                <button onclick="selectCategory('all')" class="cat-card group relative rounded-2xl overflow-hidden text-right">
+                    <div class="aspect-[3/4] overflow-hidden" style="background: var(--sand);">
+                        <img src="${IMGS.heroSet}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" alt="كل المنتجات">
+                    </div>
+                    <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(140,74,80,.82) 0%, rgba(140,74,80,0) 55%);"></div>
+                    <div class="absolute bottom-0 right-0 p-3 w-full">
+                        <h3 class="font-display font-bold text-white text-sm md:text-base">كل المنتجات</h3>
+                        <p class="text-[10px] text-white/85">${totalCount} منتج</p>
+                    </div>
+                </button>`;
+            wrap.innerHTML = allCard + categoriesList.map(c => {
+                const count = productsList.filter(p => p.category_id === c.id).length;
+                const img = categoryImage(c.name);
+                return `
+                <button onclick="selectCategory(${c.id})" class="cat-card group relative rounded-2xl overflow-hidden text-right">
+                    <div class="aspect-[3/4] overflow-hidden" style="background: var(--sand);">
+                        <img src="${img}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" alt="${escapeHtml(c.name)}">
+                    </div>
+                    <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(42,33,29,.78) 0%, rgba(42,33,29,0) 55%);"></div>
+                    <div class="absolute bottom-0 right-0 p-3 w-full">
+                        <h3 class="font-display font-bold text-white text-sm md:text-base">${escapeHtml(c.name)}</h3>
+                        <p class="text-[10px] text-white/85">${count} منتج</p>
+                    </div>
+                </button>`;
+            }).join('');
         }
 
         function selectCategory(id) {
             activeCategoryId = id;
             renderCategoryTabs();
             renderProducts();
-            document.getElementById('products-heading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollToId('products-section');
+            const cat = categoriesList.find(c => c.id === id);
+            toast(id === 'all' ? 'عرض كل المنتجات' : 'قسم: ' + (cat ? cat.name : ''), 'info');
         }
 
+        // ==================== المنتجات ====================
         function renderProducts() {
             const grid = document.getElementById('products-grid');
             const heading = document.getElementById('products-heading');
@@ -435,12 +722,22 @@
                 grid.innerHTML = `<p class="col-span-full text-center py-10 text-sm" style="color: var(--ink-muted);">لا توجد منتجات في هذا القسم حالياً.</p>`;
                 return;
             }
-            grid.innerHTML = filtered.map(p => `
+            grid.innerHTML = filtered.map(p => {
+                const wished = wishlist.some(w => w.id === p.id);
+                return `
                 <div class="product-card card rounded-2xl p-4 flex flex-col justify-between space-y-3">
                     <div class="space-y-3">
-                        <div class="relative aspect-square rounded-xl overflow-hidden" style="background: var(--sand);">
-                            <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" class="w-full h-full object-cover" loading="lazy">
+                        <div class="relative aspect-square rounded-xl overflow-hidden group" style="background: var(--sand);">
+                            <img src="${escapeHtml(productImage(p))}" alt="${escapeHtml(p.title)}" class="pimg w-full h-full object-cover" loading="lazy">
                             ${p.old_price ? `<span class="tag-sale absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
+                            <div class="absolute top-2 left-2 flex flex-col gap-2">
+                                <button onclick="openQuickView(${p.id})" title="عرض سريع" class="card-action-btn text-xs" style="color: var(--ink);">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button onclick="toggleWishlist(${p.id}, event)" title="المفضلة" class="card-action-btn wish-btn ${wished ? 'is-wished' : ''}" style="color: ${wished ? '#fff' : 'var(--rosewood)'};">
+                                    <i class="fa-${wished ? 'solid' : 'regular'} fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                         <h3 class="font-bold text-base leading-snug" style="color: var(--ink);">${escapeHtml(p.title)}</h3>
                         <p class="text-xs line-clamp-2" style="color: var(--ink-muted);">${escapeHtml(p.desc || '')}</p>
@@ -449,7 +746,7 @@
                         <div class="flex items-baseline justify-between">
                             <div>
                                 <span class="text-base font-black" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
-                                ${p.old_price ? `<span class="text-xs line-through ml-1" style="color: var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
+                                ${p.old_price ? `<span class="text-xs line-through mr-1" style="color: var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
                             </div>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded ${p.status === 'out' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">
                                 ${p.status === 'out' ? 'نفدت الكمية' : 'متوفر'}
@@ -461,9 +758,192 @@
                         </button>
                     </div>
                 </div>
+            `;
+            }).join('');
+        }
+
+        // ==================== عرض سريع (Quick View) ====================
+        let qvId = null;
+        let qvQty = 1;
+
+        function openQuickView(productId) {
+            const p = productsList.find(prod => prod.id === productId);
+            if (!p) return;
+            qvId = productId;
+            qvQty = 1;
+
+            const cat = categoriesList.find(c => c.id === p.category_id);
+            document.getElementById('qv-img').src = productImage(p);
+            document.getElementById('qv-cat').textContent = cat ? cat.name : 'دلع الهوانم';
+            document.getElementById('qv-title').textContent = p.title;
+            document.getElementById('qv-desc').textContent = p.desc || 'خامة ممتازة وتقفيل عالي، متوفر بألوان متعددة داخل المعرض.';
+            document.getElementById('qv-qty').textContent = qvQty;
+
+            const prices = document.getElementById('qv-prices');
+            prices.innerHTML = `
+                <span class="text-xl font-black" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
+                ${p.old_price ? `<span class="text-sm line-through" style="color: var(--ink-muted);">${p.old_price} ج.م</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">وفّري ${p.old_price - p.price} ج.م</span>` : ''}
+            `;
+
+            const status = document.getElementById('qv-status');
+            if (p.status === 'out') {
+                status.textContent = 'نفدت الكمية';
+                status.style.background = '#FEE2E2';
+                status.style.color = '#B91C1C';
+            } else {
+                status.textContent = 'متوفر بالمعرض';
+                status.style.background = '#D1FAE5';
+                status.style.color = '#065F46';
+            }
+
+            const addBtn = document.getElementById('qv-add-btn');
+            addBtn.disabled = p.status === 'out';
+            addBtn.style.opacity = p.status === 'out' ? '.5' : '1';
+
+            updateQvWishState();
+
+            const modal = document.getElementById('qv-modal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('opacity-100'));
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQuickView() {
+            const modal = document.getElementById('qv-modal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 250);
+            document.body.style.overflow = '';
+            qvId = null;
+        }
+
+        function qvChangeQty(delta) {
+            qvQty = Math.max(1, qvQty + delta);
+            document.getElementById('qv-qty').textContent = qvQty;
+        }
+
+        function qvAddToCart() {
+            if (!qvId) return;
+            const product = productsList.find(p => p.id === qvId);
+            if (!product || product.status === 'out') return;
+
+            const existing = cart.find(item => item.id === qvId);
+            if (existing) {
+                existing.qty += qvQty;
+            } else {
+                cart.push({ ...product, image: productImage(product), qty: qvQty });
+            }
+            updateCartUI();
+            toast(`تمت إضافة ${qvQty} × ${product.title} إلى السلة`);
+            closeQuickView();
+            setTimeout(() => toggleCartDrawer(true), 300);
+        }
+
+        function qvToggleWish() {
+            if (!qvId) return;
+            toggleWishlist(qvId);
+            updateQvWishState();
+        }
+
+        function updateQvWishState() {
+            const wished = wishlist.some(w => w.id === qvId);
+            const btn = document.getElementById('qv-wish-btn');
+            document.getElementById('qv-wish-text').textContent = wished ? 'إزالة من المفضلة' : 'إضافة للمفضلة';
+            btn.style.borderColor = wished ? 'var(--rosewood)' : 'var(--line)';
+            btn.style.color = wished ? 'var(--rosewood)' : 'var(--ink)';
+            btn.querySelector('i').className = wished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        }
+
+        // ==================== المفضلة (Wishlist) ====================
+        function toggleWishlist(productId, ev) {
+            const p = productsList.find(prod => prod.id === productId);
+            if (!p) return;
+            const idx = wishlist.findIndex(w => w.id === productId);
+            if (idx > -1) {
+                wishlist.splice(idx, 1);
+                toast('تمت الإزالة من المفضلة', 'info');
+            } else {
+                wishlist.push({ id: p.id, title: p.title, price: p.price, image: productImage(p) });
+                toast('أُضيف "' + p.title + '" للمفضلة');
+            }
+            localStorage.setItem('dh_wishlist_v3', JSON.stringify(wishlist));
+            updateWishlistUI();
+            renderProducts();
+            if (ev && ev.currentTarget) {
+                ev.currentTarget.classList.add('heart-pop');
+                setTimeout(() => ev.currentTarget?.classList.remove('heart-pop'), 320);
+            }
+        }
+
+        function removeFromWishlist(productId) {
+            wishlist = wishlist.filter(w => w.id !== productId);
+            localStorage.setItem('dh_wishlist_v3', JSON.stringify(wishlist));
+            updateWishlistUI();
+            renderProducts();
+            toast('تمت الإزالة من المفضلة', 'info');
+        }
+
+        function updateWishlistUI() {
+            const count = wishlist.length;
+            [document.getElementById('wish-badge'), document.getElementById('wish-badge-mobile')].forEach(b => {
+                b.textContent = count;
+                b.classList.toggle('hidden', count === 0);
+                b.classList.toggle('flex', count > 0);
+            });
+
+            const wrap = document.getElementById('wish-items');
+            if (!wrap) return;
+            if (count === 0) {
+                wrap.innerHTML = `
+                    <div class="text-center py-12 text-sm" style="color: var(--ink-muted);">
+                        <i class="fa-regular fa-heart text-3xl mb-2 opacity-40"></i>
+                        <p>قائمة المفضلة فارغة حالياً</p>
+                        <p class="text-[10px] mt-1">اضغطي على القلب في أي منتج لإضافته هنا</p>
+                    </div>`;
+                return;
+            }
+            wrap.innerHTML = wishlist.map(w => `
+                <div class="card rounded-xl p-3 flex items-center gap-3">
+                    <img src="${escapeHtml(w.image)}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0" style="background: var(--sand);">
+                    <div class="flex-grow min-w-0">
+                        <h4 class="font-bold text-xs truncate" style="color: var(--ink);">${escapeHtml(w.title)}</h4>
+                        <span class="text-xs font-black block mt-0.5" style="color: var(--rosewood-deep);">${w.price} ج.م</span>
+                    </div>
+                    <div class="flex flex-col gap-1.5 flex-shrink-0">
+                        <button onclick="wishlistAddToCart(${w.id})" class="btn-primary px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-cart-plus"></i> للسلة
+                        </button>
+                        <button onclick="removeFromWishlist(${w.id})" class="px-2.5 py-1 rounded text-[10px] font-bold text-red-600 border border-red-200 hover:bg-red-50">
+                            <i class="fa-solid fa-trash"></i> إزالة
+                        </button>
+                    </div>
+                </div>
             `).join('');
         }
 
+        function wishlistAddToCart(productId) {
+            const product = productsList.find(p => p.id === productId);
+            if (!product) { toast('هذا المنتج لم يعد متاحاً', 'error'); return; }
+            if (product.status === 'out') { toast('نفدت كمية هذا المنتج', 'error'); return; }
+            addToCart(productId);
+        }
+
+        function toggleWishlistDrawer(open) {
+            const drawer = document.getElementById('wish-drawer');
+            if (open) {
+                drawer.classList.remove('hidden');
+                requestAnimationFrame(() => drawer.classList.add('opacity-100', 'is-open'));
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.remove('is-open', 'opacity-100');
+                setTimeout(() => {
+                    drawer.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 280);
+            }
+        }
+
+        // ==================== السلة ====================
         function addToCart(productId, event) {
             const product = productsList.find(p => p.id === productId);
             if (!product || product.status === 'out') return;
@@ -472,7 +952,7 @@
             if (existing) {
                 existing.qty += 1;
             } else {
-                cart.push({ ...product, qty: 1 });
+                cart.push({ ...product, image: productImage(product), qty: 1 });
             }
 
             if (event && event.currentTarget) {
@@ -497,9 +977,12 @@
         }
 
         function updateCartUI() {
-            const badge = document.getElementById('cart-badge');
             const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-            badge.textContent = totalQty;
+            [document.getElementById('cart-badge'), document.getElementById('cart-badge-mobile')].forEach(b => {
+                b.textContent = totalQty;
+                b.classList.toggle('hidden', totalQty === 0);
+                b.classList.toggle('flex', totalQty > 0);
+            });
 
             const cartItemsEl = document.getElementById('cart-items');
             if (cart.length === 0) {
@@ -543,9 +1026,13 @@
                 requestAnimationFrame(() => {
                     drawer.classList.add('opacity-100', 'is-open');
                 });
+                document.body.style.overflow = 'hidden';
             } else {
                 drawer.classList.remove('is-open', 'opacity-100');
-                setTimeout(() => drawer.classList.add('hidden'), 280);
+                setTimeout(() => {
+                    drawer.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 280);
             }
         }
 
@@ -606,6 +1093,7 @@
             window.open(url, '_blank');
         }
 
+        // ==================== لوحة الإدارة ====================
         function toggleAdminModal() {
             if (!isAdminLoggedIn) {
                 const pwd = prompt('يرجى إدخال كلمة مرور لوحة الإدارة:');
@@ -688,7 +1176,7 @@
             const fileInput = document.getElementById('p-image-file');
             const existingImage = document.getElementById('p-existing-image').value;
 
-            let imageUrl = existingImage || 'https://via.placeholder.com/400x400/FAF5EE/8C4A50?text=دلع+الهوانم';
+            let imageUrl = existingImage || categoryImage(categoriesList.find(c => c.id === categoryId)?.name || '');
 
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
@@ -796,7 +1284,7 @@
             wrap.innerHTML = productsList.map(p => `
                 <div class="card rounded-lg p-3 flex items-center justify-between gap-3 text-xs">
                     <div class="flex items-center gap-3">
-                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded" style="background: var(--sand);">
+                        <img src="${escapeHtml(productImage(p))}" class="w-10 h-10 object-cover rounded" style="background: var(--sand);">
                         <div>
                             <span class="font-bold block" style="color: var(--ink);">${escapeHtml(p.title)}</span>
                             <span class="text-[10px]" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
@@ -854,8 +1342,37 @@
             `).join('');
         }
 
-        document.addEventListener('DOMContentLoaded', initStore);
+        // ==================== تشغيل ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHero();
+            restartHeroTimer();
+            updateWishlistUI();
+            updateCartUI();
+            initStore();
+
+            // تحديث حالة التبويب النشط في شريط الموبايل عند التمرير
+            const sections = [
+                { id: 'hero-section', nav: 'home' },
+                { id: 'categories-section', nav: 'cats' }
+            ];
+            window.addEventListener('scroll', () => {
+                let current = 'home';
+                sections.forEach(s => {
+                    const el = document.getElementById(s.id);
+                    if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) current = s.nav;
+                });
+                setMobileNavActive(current);
+            }, { passive: true });
+
+            // إغلاق النوافذ بمفتاح Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeQuickView();
+                    toggleCartDrawer(false);
+                    toggleWishlistDrawer(false);
+                }
+            });
+        });
     </script>
 </body>
 </html>
-HTMLEOF
