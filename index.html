@@ -72,7 +72,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </span>
         </div>
     </div>
-
     <!-- 2. الهيدر -->
     <header class="border-b sticky top-[30px] z-40" style="background: var(--surface); border-color: var(--line);">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
@@ -100,7 +99,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             <div id="category-tabs" class="max-w-6xl mx-auto px-4 flex gap-5 overflow-x-auto tab-scroll"></div>
         </div>
     </header>
-
     <!-- 3. الهيرو -->
     <section class="px-4 pt-12 pb-10 md:pt-16 md:pb-14">
         <div class="max-w-6xl mx-auto">
@@ -115,7 +113,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </div>
         </div>
     </section>
-
     <!-- 4. المنتجات -->
     <main class="max-w-6xl mx-auto px-4 pb-6 flex-grow">
         <div class="flex items-end justify-between mb-6">
@@ -133,7 +130,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
         </div>
         <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden"></div>
     </main>
-
     <!-- 5. آراء العميلات -->
     <section class="py-14" style="border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface);">
         <div class="max-w-6xl mx-auto px-4">
@@ -157,7 +153,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </div>
         </div>
     </section>
-
     <!-- 6. الفوتر -->
     <footer class="pt-12 pb-6" style="background: var(--ink); color: var(--paper);">
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10 pb-8 text-center md:text-right" style="border-bottom: 1px solid rgba(250,245,238,.15);">
@@ -187,7 +182,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             جميع الحقوق محفوظة &copy; 2026 - دلع الهوانم
         </div>
     </footer>
-
     <!-- 7. درج سلة التسوق -->
     <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
         <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
@@ -228,7 +222,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </div>
         </div>
     </div>
-
     <!-- 8. لوحة الإدارة -->
     <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
         <div class="w-full max-w-3xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto space-y-6 anim-pop-in" style="background: var(--surface);">
@@ -297,7 +290,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </div>
         </div>
     </div>
-
     <!-- 9. نافذة تأكيد عامة -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[60] hidden opacity-0 flex items-center justify-center p-4">
         <div class="w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 anim-pop-in text-center" style="background: var(--surface);">
@@ -308,7 +300,6 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             </div>
         </div>
     </div>
-
     <!-- 10. حاوية التنبيهات -->
     <div id="toast-container" class="fixed bottom-4 inset-x-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
@@ -378,7 +369,7 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
 
         async function fetchCategories() {
             try {
-                const { data, error } = await _supabase.from('categories').select('*').order('sort_order', { ascending: true });
+                const { data, error } = await _supabase.from('categories').select('*').order('id', { ascending: true });
                 if (error) throw error;
                 categoriesList = data || [];
                 categoriesTableMissing = false;
@@ -458,164 +449,183 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
                     <div class="space-y-3 pt-2" style="border-top: 1px solid var(--line);">
                         <div class="flex items-baseline justify-between">
                             <div>
-                                <span class="font-bold text-lg" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
-                                ${p.old_price ? `<span class="text-xs line-through mr-1.5" style="color: var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
+                                <span class="text-base font-black" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
+                                ${p.old_price ? `<span class="text-xs line-through ml-1" style="color: var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
                             </div>
-                            ${p.status === 'out' ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">نفدت الكمية</span>` : ''}
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${p.status === 'out' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">
+                                ${p.status === 'out' ? 'نفدت الكمية' : 'متوفر'}
+                            </span>
                         </div>
-                        <button onclick="addToCart('${p.id}')" ${p.status === 'out' ? 'disabled' : ''} class="btn-primary w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                        <button onclick="addToCart(${p.id}, event)" ${p.status === 'out' ? 'disabled' : ''} class="btn-primary w-full py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                             <i class="fa-solid fa-cart-plus"></i>
-                            <span>${p.status === 'out' ? 'غير متوفر' : 'إضافة للسلة'}</span>
+                            إضافة للسلة
                         </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        /* --- إدارة السلة --- */
-        function addToCart(productId) {
-            const prod = productsList.find(p => p.id == productId);
-            if (!prod) return;
-            const existing = cart.find(item => item.id == productId);
+        function addToCart(productId, event) {
+            const product = productsList.find(p => p.id === productId);
+            if (!product || product.status === 'out') return;
+
+            const existing = cart.find(item => item.id === productId);
             if (existing) {
-                existing.quantity += 1;
+                existing.qty += 1;
             } else {
-                cart.push({ id: prod.id, title: prod.title, price: Number(prod.price), image: prod.image, quantity: 1 });
+                cart.push({ ...product, qty: 1 });
             }
-            renderCart();
-            toast(`تمت إضافة "${prod.title}" إلى السلة`);
-        }
 
-        function updateCartQuantity(productId, delta) {
-            const item = cart.find(i => i.id == productId);
-            if (!item) return;
-            item.quantity += delta;
-            if (item.quantity <= 0) {
-                cart = cart.filter(i => i.id != productId);
+            if (event && event.currentTarget) {
+                const btn = event.currentTarget;
+                btn.classList.add('add-pulse');
+                setTimeout(() => btn.classList.remove('add-pulse'), 300);
             }
-            renderCart();
+
+            updateCartUI();
+            toast('تمت إضافة ' + product.title + ' إلى السلة');
         }
 
-        function removeFromCart(productId) {
-            cart = cart.filter(i => i.id != productId);
-            renderCart();
+        function updateCartQty(productId, delta) {
+            const index = cart.findIndex(item => item.id === productId);
+            if (index === -1) return;
+
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
         }
 
-        function renderCart() {
+        function updateCartUI() {
             const badge = document.getElementById('cart-badge');
-            const container = document.getElementById('cart-items');
-            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-            badge.textContent = totalCount;
+            const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+            badge.textContent = totalQty;
 
+            const cartItemsEl = document.getElementById('cart-items');
             if (cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-xs" style="color: var(--ink-muted);"><i class="fa-solid fa-basket-shopping text-3xl mb-2 block opacity-40"></i>السلة فارغة حالياً</div>`;
-                document.getElementById('cart-summary').classList.add('hidden');
+                cartItemsEl.innerHTML = `
+                    <div class="text-center py-12 text-sm" style="color: var(--ink-muted);">
+                        <i class="fa-solid fa-bag-shopping text-3xl mb-2 opacity-40"></i>
+                        <p>السلة فارغة حالياً</p>
+                    </div>`;
+                document.getElementById('cart-discount').textContent = '0 ج.م';
+                document.getElementById('cart-total').textContent = '0 ج.م';
                 return;
             }
 
-            document.getElementById('cart-summary').classList.remove('hidden');
-            container.innerHTML = cart.map(item => `
-                <div class="card p-3 rounded-xl flex items-center gap-3">
-                    <img src="${escapeHtml(item.image)}" class="w-14 h-14 object-cover rounded-lg shrink-0" style="background: var(--sand);">
+            cartItemsEl.innerHTML = cart.map(item => `
+                <div class="card rounded-xl p-3 flex items-center gap-3">
+                    <img src="${escapeHtml(item.image)}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0" style="background: var(--sand);">
                     <div class="flex-grow min-w-0">
-                        <h4 class="text-xs font-bold truncate" style="color: var(--ink);">${escapeHtml(item.title)}</h4>
-                        <p class="text-xs font-semibold" style="color: var(--rosewood-deep);">${item.price} ج.م</p>
+                        <h4 class="font-bold text-xs truncate" style="color: var(--ink);">${escapeHtml(item.title)}</h4>
+                        <span class="text-xs font-black block mt-0.5" style="color: var(--rosewood-deep);">${item.price} ج.م</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="updateCartQuantity('${item.id}', -1)" class="w-6 h-6 rounded-md btn-outline text-xs flex items-center justify-center font-bold">-</button>
-                        <span class="text-xs font-bold px-1">${item.quantity}</span>
-                        <button onclick="updateCartQuantity('${item.id}', 1)" class="w-6 h-6 rounded-md btn-outline text-xs flex items-center justify-center font-bold">+</button>
-                        <button onclick="removeFromCart('${item.id}')" class="text-red-500 hover:text-red-700 text-xs mr-1"><i class="fa-solid fa-trash-can"></i></button>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button onclick="updateCartQty(${item.id}, -1)" class="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs" style="border-color: var(--line);">-</button>
+                        <span class="text-xs font-bold px-1">${item.qty}</span>
+                        <button onclick="updateCartQty(${item.id}, 1)" class="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs" style="border-color: var(--line);">+</button>
                     </div>
                 </div>
             `).join('');
 
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const discount = totalCount > 1 ? (totalCount - 1) * 50 : 0;
-            const finalTotal = Math.max(0, subtotal - discount);
+            let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) * item.qty), 0);
+            let discount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
+            let finalTotal = Math.max(0, subtotal - discount);
 
-            document.getElementById('cart-discount').textContent = `${discount} ج.م`;
-            document.getElementById('cart-total').textContent = `${finalTotal} ج.م`;
+            document.getElementById('cart-discount').textContent = discount + ' ج.م';
+            document.getElementById('cart-total').textContent = finalTotal + ' ج.م';
         }
 
-        function toggleCartDrawer(show) {
+        function toggleCartDrawer(open) {
             const drawer = document.getElementById('cart-drawer');
-            if (show) {
+            if (open) {
                 drawer.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     drawer.classList.add('opacity-100', 'is-open');
                 });
             } else {
                 drawer.classList.remove('is-open', 'opacity-100');
-                setTimeout(() => drawer.classList.add('hidden'), 250);
+                setTimeout(() => drawer.classList.add('hidden'), 280);
             }
         }
 
         function onPaymentMethodChange() {
-            const method = document.querySelector('input[name="payment-method"]:checked')?.value;
-            const detailsBox = document.getElementById('payment-details');
-            if (method && PAYMENT_INFO[method]) {
-                const info = PAYMENT_INFO[method];
-                detailsBox.innerHTML = `<strong>تحويل إلى ${info.label}:</strong> ${info.number}<br>برجاء إرفاق صورة الشاشات في الواتساب بعد التحويل.`;
-                detailsBox.classList.remove('hidden');
+            const selected = document.querySelector('input[name="payment-method"]:checked')?.value;
+            const detailsDiv = document.getElementById('payment-details');
+            if (selected && PAYMENT_INFO[selected]) {
+                const info = PAYMENT_INFO[selected];
+                detailsDiv.innerHTML = `
+                    <p class="font-bold">برجاء التحويل إلى رقم ${info.label}:</p>
+                    <p class="font-mono text-xs font-black text-emerald-800 dir-ltr">${info.number}</p>
+                    <p class="opacity-80">سيتم إرسال تأكيد التحويل في الرسالة عبر الواتساب.</p>`;
+                detailsDiv.classList.remove('hidden');
             } else {
-                detailsBox.classList.add('hidden');
+                detailsDiv.classList.add('hidden');
             }
         }
 
         function sendOrderWhatsApp() {
-            if (cart.length === 0) { toast('السلة فارغة!', 'error'); return; }
+            if (cart.length === 0) {
+                toast('السلة فارغة، يرجى إضافة منتجات أولاً', 'error');
+                return;
+            }
+
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
             const address = document.getElementById('cust-address').value.trim();
 
             if (!name || !phone || !address) {
-                toast('يرجى ملء جميع البيانات المطلوب التواصل بها', 'error');
+                toast('يرجى ملء جميع بيانات التوصيل', 'error');
                 return;
             }
 
-            const methodKey = document.querySelector('input[name="payment-method"]:checked')?.value || 'cod';
-            const methodNames = { cod: 'الدفع عند الاستلام', vodafone_cash: 'فودافون كاش', instapay: 'إنستاباي' };
-            const methodName = methodNames[methodKey] || 'كاش';
+            const selectedPayment = document.querySelector('input[name="payment-method"]:checked')?.value || 'cod';
+            const paymentLabels = { cod: 'الدفع عند الاستلام (كاش)', vodafone_cash: 'فودافون كاش', instapay: 'إنستاباي' };
 
-            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const discount = totalCount > 1 ? (totalCount - 1) * 50 : 0;
-            const finalTotal = Math.max(0, subtotal - discount);
+            let totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+            let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) * item.qty), 0);
+            let discount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
+            let finalTotal = Math.max(0, subtotal - discount);
 
-            let msg = `🌸 *طلب جديد من متجر دلع الهوانم* 🌸\n\n`;
+            let msg = `🛍️ *طلب جديد من متجر دلع الهوانم*\n\n`;
             msg += `👤 *الاسم:* ${name}\n`;
-            msg += `📱 *رقم الهاتف:* ${phone}\n`;
+            msg += `📞 *الهاتف:* ${phone}\n`;
             msg += `📍 *العنوان:* ${address}\n`;
-            msg += `💳 *طريقة الدفع:* ${methodName}\n\n`;
-            msg += `🛍️ *الطلبات:*\n`;
-            cart.forEach((item, idx) => {
-                msg += `${idx + 1}. ${item.title} × ${item.quantity} = ${item.price * item.quantity} ج.م\n`;
+            msg += `💳 *طريقة الدفع:* ${paymentLabels[selectedPayment] || selectedPayment}\n\n`;
+            msg += `📦 *الطلبات:*\n`;
+
+            cart.forEach((item, i) => {
+                msg += `${i + 1}. ${item.title} (العدد: ${item.qty}) - ${item.price * item.qty} ج.م\n`;
             });
+
             msg += `\n💰 *المجموع:* ${subtotal} ج.م\n`;
-            if (discount > 0) msg += `🎁 *خصم قطع متعددة:* -${discount} ج.م\n`;
+            if (discount > 0) msg += `🎉 *الخصم المستحق:* ${discount} ج.م\n`;
             msg += `✨ *الإجمالي النهائي:* ${finalTotal} ج.م\n`;
 
             const url = `https://wa.me/201065852975?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
         }
 
-        /* --- لوحة الإدارة --- */
         function toggleAdminModal() {
             if (!isAdminLoggedIn) {
-                const pass = prompt("أدخلي كلمة مرور لوحة الإدارة:");
-                if (pass !== ADMIN_PASSWORD) {
-                    if (pass !== null) toast("كلمة المرور غير صحيحة", "error");
+                const pwd = prompt('يرجى إدخال كلمة مرور لوحة الإدارة:');
+                if (pwd === ADMIN_PASSWORD) {
+                    isAdminLoggedIn = true;
+                    toast('تم تسجيل الدخول كمسؤول بنجاح');
+                } else if (pwd !== null) {
+                    toast('كلمة المرور غير صحيحة', 'error');
+                    return;
+                } else {
                     return;
                 }
-                isAdminLoggedIn = true;
             }
-            populateCategorySelect();
-            renderAdminProducts();
-            renderAdminCategories();
+
             const modal = document.getElementById('admin-modal');
             modal.classList.remove('hidden');
             requestAnimationFrame(() => modal.classList.add('opacity-100'));
+            renderAdminProducts();
+            renderAdminCategories();
         }
 
         function closeAdminModal() {
@@ -625,33 +635,32 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
         }
 
         function switchAdminTab(tab) {
-            const btnProd = document.getElementById('admin-tab-btn-products');
-            const btnCat = document.getElementById('admin-tab-btn-categories');
-            const tabProd = document.getElementById('admin-tab-products');
-            const tabCat = document.getElementById('admin-tab-categories');
+            const pTab = document.getElementById('admin-tab-products');
+            const cTab = document.getElementById('admin-tab-categories');
+            const pBtn = document.getElementById('admin-tab-btn-products');
+            const cBtn = document.getElementById('admin-tab-btn-categories');
 
             if (tab === 'products') {
-                btnProd.style.borderColor = 'var(--rosewood)';
-                btnProd.style.color = 'var(--rosewood)';
-                btnCat.style.borderColor = 'transparent';
-                btnCat.style.color = 'var(--ink-muted)';
-                tabProd.classList.remove('hidden');
-                tabCat.classList.add('hidden');
+                pTab.classList.remove('hidden');
+                cTab.classList.add('hidden');
+                pBtn.style.borderColor = 'var(--rosewood)';
+                pBtn.style.color = 'var(--rosewood)';
+                cBtn.style.borderColor = 'transparent';
+                cBtn.style.color = 'var(--ink-muted)';
             } else {
-                btnCat.style.borderColor = 'var(--rosewood)';
-                btnCat.style.color = 'var(--rosewood)';
-                btnProd.style.borderColor = 'transparent';
-                btnProd.style.color = 'var(--ink-muted)';
-                tabCat.classList.remove('hidden');
-                tabProd.classList.add('hidden');
+                pTab.classList.add('hidden');
+                cTab.classList.remove('hidden');
+                cBtn.style.borderColor = 'var(--rosewood)';
+                cBtn.style.color = 'var(--rosewood)';
+                pBtn.style.borderColor = 'transparent';
+                pBtn.style.color = 'var(--ink-muted)';
             }
         }
 
         function populateCategorySelect() {
-            const sel = document.getElementById('p-category');
-            sel.innerHTML = `<option value="">اختاري التصنيف</option>` + categoriesList.map(c => `
-                <option value="${c.id}">${escapeHtml(c.name)}</option>
-            `).join('');
+            const select = document.getElementById('p-category');
+            select.innerHTML = `<option value="">اختاري التصنيف</option>` +
+                categoriesList.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
         }
 
         function previewProductImage(e) {
@@ -660,11 +669,74 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             const img = document.getElementById('image-preview');
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (ev) => {
-                    img.src = ev.target.result;
+                reader.onload = function(evt) {
+                    img.src = evt.target.result;
                     wrap.classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleProductFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('p-edit-id').value;
+            const title = document.getElementById('p-title').value.trim();
+            const categoryId = parseInt(document.getElementById('p-category').value);
+            const price = parseFloat(document.getElementById('p-price').value);
+            const oldPrice = parseFloat(document.getElementById('p-old-price').value) || null;
+            const desc = document.getElementById('p-desc').value.trim();
+            const status = document.getElementById('p-status').value;
+            const fileInput = document.getElementById('p-image-file');
+            const existingImage = document.getElementById('p-existing-image').value;
+
+            let imageUrl = existingImage || 'https://via.placeholder.com/400x400/FAF5EE/8C4A50?text=دلع+الهوانم';
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+                const filePath = `products/${fileName}`;
+
+                const { data: uploadData, error: uploadError } = await _supabase.storage.from('product-images').upload(filePath, file);
+                if (uploadError) {
+                    console.warn('لم يتم الرفع إلى storage, استخدام DataURL مؤقتاً:', uploadError);
+                    imageUrl = await new Promise(res => {
+                        const r = new FileReader();
+                        r.onload = ev => res(ev.target.result);
+                        r.readAsDataURL(file);
+                    });
+                } else {
+                    const { data: urlData } = _supabase.storage.from('product-images').getPublicUrl(filePath);
+                    imageUrl = urlData.publicUrl;
+                }
+            }
+
+            const payload = {
+                title,
+                category_id: categoryId,
+                price,
+                old_price: oldPrice,
+                desc,
+                status,
+                image: imageUrl
+            };
+
+            try {
+                if (editId) {
+                    const { error } = await _supabase.from('products').update(payload).eq('id', editId);
+                    if (error) throw error;
+                    toast('تم تعديل المنتج بنجاح');
+                } else {
+                    const { error } = await _supabase.from('products').insert([payload]);
+                    if (error) throw error;
+                    toast('تمت إضافة المنتج بنجاح');
+                }
+
+                cancelEditProduct();
+                await fetchProducts();
+            } catch (err) {
+                console.error('خطأ في حفظ المنتج:', err);
+                toast('حدث خطأ أثناء الحفظ: ' + (err.message || err), 'error');
             }
         }
 
@@ -672,172 +744,115 @@ cat > /home/claude/dalaa-alhawanem.html << 'HTMLEOF'
             document.getElementById('add-product-form').reset();
             document.getElementById('p-edit-id').value = '';
             document.getElementById('p-existing-image').value = '';
-            document.getElementById('product-form-title').textContent = 'إضافة منتج جديد وتخزينه في Supabase';
-            document.getElementById('submit-btn-text').textContent = 'حفظ ونشر على Supabase';
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
-            document.getElementById('image-hint').classList.add('hidden');
             document.getElementById('image-preview-wrap').classList.add('hidden');
-        }
-
-        async function handleProductFormSubmit(e) {
-            e.preventDefault();
-            const editId = document.getElementById('p-edit-id').value;
-            const title = document.getElementById('p-title').value.trim();
-            const category_id = document.getElementById('p-category').value;
-            const price = parseFloat(document.getElementById('p-price').value);
-            const old_price_val = document.getElementById('p-old-price').value;
-            const old_price = old_price_val ? parseFloat(old_price_val) : null;
-            const desc = document.getElementById('p-desc').value.trim();
-            const status = document.getElementById('p-status').value;
-            const fileInput = document.getElementById('p-image-file');
-
-            let imageUrl = document.getElementById('p-existing-image').value;
-
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const { data: uploadData, error: uploadError } = await _supabase.storage.from('products').upload(fileName, file);
-                if (!uploadError && uploadData) {
-                    const { data: publicUrlData } = _supabase.storage.from('products').getPublicUrl(fileName);
-                    imageUrl = publicUrlData.publicUrl;
-                } else {
-                    imageUrl = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => resolve(ev.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                }
-            }
-
-            if (!imageUrl) {
-                imageUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=80";
-            }
-
-            const payload = { title, category_id: category_id ? parseInt(category_id) : null, price, old_price, desc, status, image: imageUrl };
-
-            try {
-                if (editId) {
-                    const { error } = await _supabase.from('products').update(payload).eq('id', editId);
-                    if (error) throw error;
-                    toast("تم تعديل المنتج بنجاح");
-                } else {
-                    const { error } = await _supabase.from('products').insert([payload]);
-                    if (error) throw error;
-                    toast("تمت إضافة المنتج بنجاح");
-                }
-                cancelEditProduct();
-                fetchProducts();
-            } catch (err) {
-                toast("حدث خطأ: " + err.message, "error");
-            }
-        }
-
-        function renderAdminProducts() {
-            const list = document.getElementById('admin-products-list');
-            if (productsList.length === 0) {
-                list.innerHTML = `<p class="text-xs" style="color: var(--ink-muted);">لا توجد منتجات مسجلة.</p>`;
-                return;
-            }
-            list.innerHTML = productsList.map(p => `
-                <div class="card p-3 rounded-lg flex items-center justify-between gap-3 text-xs">
-                    <div class="flex items-center gap-3">
-                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded-md" style="background: var(--sand);">
-                        <div>
-                            <p class="font-bold">${escapeHtml(p.title)}</p>
-                            <p style="color: var(--rosewood);">${p.price} ج.م</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="editProduct('${p.id}')" class="btn-outline px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteProduct('${p.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('image-hint').classList.add('hidden');
+            document.getElementById('product-form-title').textContent = 'إضافة منتج جديد وتخزينه في Supabase';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
         }
 
         function editProduct(id) {
-            const p = productsList.find(item => item.id == id);
+            const p = productsList.find(prod => prod.id === id);
             if (!p) return;
+
             document.getElementById('p-edit-id').value = p.id;
-            document.getElementById('p-existing-image').value = p.image || '';
             document.getElementById('p-title').value = p.title;
             document.getElementById('p-category').value = p.category_id || '';
             document.getElementById('p-price').value = p.price;
             document.getElementById('p-old-price').value = p.old_price || '';
             document.getElementById('p-desc').value = p.desc || '';
             document.getElementById('p-status').value = p.status || 'available';
-
-            document.getElementById('product-form-title').textContent = 'تعديل بيانات المنتج';
-            document.getElementById('submit-btn-text').textContent = 'حفظ التعديلات';
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
-            document.getElementById('image-hint').classList.remove('hidden');
+            document.getElementById('p-existing-image').value = p.image || '';
 
             if (p.image) {
                 document.getElementById('image-preview').src = p.image;
                 document.getElementById('image-preview-wrap').classList.remove('hidden');
+                document.getElementById('image-hint').classList.remove('hidden');
             }
+
+            document.getElementById('product-form-title').textContent = 'تعديل بيانات المنتج';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function deleteProduct(id) {
-            const confirmed = await showConfirm("هل أنتِ متأكدة من حذف هذا المنتج؟");
+            const confirmed = await showConfirm('هل أنتِ متأكدة من حذف هذا المنتج؟');
             if (!confirmed) return;
+
             try {
                 const { error } = await _supabase.from('products').delete().eq('id', id);
                 if (error) throw error;
-                toast("تم حذف المنتج");
-                fetchProducts();
+                toast('تم حذف المنتج بنجاح');
+                await fetchProducts();
             } catch (err) {
-                toast("خطأ في الحذف: " + err.message, "error");
+                toast('خطأ في الحذف: ' + err.message, 'error');
             }
+        }
+
+        function renderAdminProducts() {
+            const wrap = document.getElementById('admin-products-list');
+            if (productsList.length === 0) {
+                wrap.innerHTML = `<p class="text-xs text-center py-4" style="color: var(--ink-muted);">لا توجد منتجات حالياً.</p>`;
+                return;
+            }
+            wrap.innerHTML = productsList.map(p => `
+                <div class="card rounded-lg p-3 flex items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-3">
+                        <img src="${escapeHtml(p.image)}" class="w-10 h-10 object-cover rounded" style="background: var(--sand);">
+                        <div>
+                            <span class="font-bold block" style="color: var(--ink);">${escapeHtml(p.title)}</span>
+                            <span class="text-[10px]" style="color: var(--rosewood-deep);">${p.price} ج.م</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editProduct(${p.id})" class="btn-outline px-2.5 py-1 rounded text-[11px] font-bold">تعديل</button>
+                        <button onclick="deleteProduct(${p.id})" class="px-2.5 py-1 rounded text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-50">حذف</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         async function handleAddCategory(e) {
             e.preventDefault();
             const name = document.getElementById('c-name').value.trim();
             const icon = document.getElementById('c-icon').value.trim();
-            if (!name) return;
 
             try {
                 const { error } = await _supabase.from('categories').insert([{ name, icon }]);
                 if (error) throw error;
-                toast("تمت إضافة التصنيف");
+                toast('تمت إضافة التصنيف بنجاح');
                 document.getElementById('add-category-form').reset();
-                fetchCategories();
+                await fetchCategories();
             } catch (err) {
-                toast("حدث خطأ: " + err.message, "error");
+                toast('خطأ في إضافة التصنيف: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteCategory(id) {
+            const confirmed = await showConfirm('هل أنتِ متأكدة من حذف هذا التصنيف؟');
+            if (!confirmed) return;
+
+            try {
+                const { error } = await _supabase.from('categories').delete().eq('id', id);
+                if (error) throw error;
+                toast('تم حذف التصنيف بنجاح');
+                await fetchCategories();
+            } catch (err) {
+                toast('خطأ في الحذف: ' + err.message, 'error');
             }
         }
 
         function renderAdminCategories() {
-            const list = document.getElementById('admin-categories-list');
-            const hint = document.getElementById('no-categories-hint');
-
+            const wrap = document.getElementById('admin-categories-list');
             if (categoriesList.length === 0) {
-                list.innerHTML = '';
-                hint.classList.remove('hidden');
+                wrap.innerHTML = `<p class="text-xs text-center py-4" style="color: var(--ink-muted);">لا توجد تصنيفات حالياً.</p>`;
                 return;
             }
-            hint.classList.add('hidden');
-            list.innerHTML = categoriesList.map(c => `
-                <div class="card p-2.5 rounded-lg flex items-center justify-between text-xs">
-                    <span class="font-bold">${c.icon ? c.icon + ' ' : ''}${escapeHtml(c.name)}</span>
-                    <button onclick="deleteCategory(${c.id})" class="bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1 rounded text-[11px] font-bold"><i class="fa-solid fa-trash-can"></i></button>
+            wrap.innerHTML = categoriesList.map(c => `
+                <div class="card rounded-lg p-3 flex items-center justify-between gap-3 text-xs">
+                    <span class="font-bold" style="color: var(--ink);">${c.icon ? c.icon + ' ' : ''}${escapeHtml(c.name)}</span>
+                    <button onclick="deleteCategory(${c.id})" class="px-2.5 py-1 rounded text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-50">حذف</button>
                 </div>
             `).join('');
-        }
-
-        async function deleteCategory(id) {
-            const confirmed = await showConfirm("هل أنتِ متأكدة من حذف هذا التصنيف؟");
-            if (!confirmed) return;
-            try {
-                const { error } = await _supabase.from('categories').delete().eq('id', id);
-                if (error) throw error;
-                toast("تم حذف التصنيف");
-                fetchCategories();
-            } catch (err) {
-                toast("خطأ في الحذف: " + err.message, "error");
-            }
         }
 
         document.addEventListener('DOMContentLoaded', initStore);
