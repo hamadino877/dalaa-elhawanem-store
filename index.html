@@ -106,6 +106,14 @@
         .policy-btn:hover { opacity: .85; }
         .policy-modal { transition: opacity .25s ease; }
 
+    
+        /* ===== التقييمات ===== */
+        .fb-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+        .fb-stars { color: var(--gold); font-size: 13px; letter-spacing: 2px; }
+        .fb-star-pick { cursor: pointer; font-size: 26px; color: var(--line); transition: color .15s ease, transform .15s ease; }
+        .fb-star-pick:hover { transform: scale(1.15); }
+        .fb-star-pick.is-on { color: var(--gold); }
+
     </style>
 <base target="_blank">
 <base target="_blank">
@@ -248,20 +256,21 @@
                 <p><i class="fa-solid fa-phone ml-1" style="color: var(--gold-soft);"></i> 01065852975</p>
                 <p><i class="fa-brands fa-whatsapp ml-1" style="color: var(--gold-soft);"></i> واتساب: 01065852975</p>
             </div>
-                        <div class="space-y-3">
+            <div class="space-y-3">
                 <h4 class="font-bold text-sm" style="color: var(--gold-soft);">طلب سريع عبر الواتساب</h4>
                 <div class="flex flex-wrap items-center gap-2 justify-center md:justify-start">
                     <a href="https://wa.me/201065852975" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition">
                         <i class="fa-brands fa-whatsapp text-lg"></i> تواصلي معنا مباشرة
                     </a>
-                    <a href="https://www.facebook.com/share/1LwuFgjoCM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="hidden md:inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:#1877F2;">
+                    <a href="https://www.facebook.com/share/1LwuFgjoCM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:#1877F2;">
                         <i class="fa-brands fa-facebook-f text-lg"></i> فيسبوك
                     </a>
-                    <a href="https://www.instagram.com/dalaaelhawanem_" target="_blank" rel="noopener" class="hidden md:inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);">
+                    <a href="https://www.instagram.com/dalaaelhawanem_" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);">
                         <i class="fa-brands fa-instagram text-lg"></i> إنستجرام
                     </a>
                 </div>
             </div>
+        </div>
         <!-- سياسة الاسترجاع وسياسة الشحن -->
         <div class="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-center md:text-right">
             <div class="policy-card">
@@ -1673,14 +1682,6 @@
         try { origSend(); } finally { cart.forEach((i, k) => i.title = saved[k]); }
     };
 
-    /* ========== 6) فيسبوك وإنستجرام ========== */
-    const waBtn = document.querySelector('footer a[href^="https://wa.me"]');
-    waBtn?.parentElement.insertAdjacentHTML('beforeend', `
-        <div class="flex items-center justify-center md:justify-start gap-2 pt-1">
-            <a href="https://www.facebook.com/share/1LwuFgjoCM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:#1877F2;"><i class="fa-brands fa-facebook-f"></i> فيسبوك</a>
-            <a href="https://www.instagram.com/dalaaelhawanem_" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition hover:opacity-90" style="background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);"><i class="fa-brands fa-instagram"></i> إنستجرام</a>
-        </div>`);
-
     updateCartUI();
 })();
 </script>
@@ -2061,6 +2062,185 @@
             m.classList.remove('opacity-100');
             setTimeout(() => m.classList.add('hidden'), 250);
         };
+    })();
+    </script>
+
+
+    <!-- نافذة إضافة تقييم -->
+    <div id="feedback-modal" class="policy-modal fixed inset-0 bg-black/60 z-[78] hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closeFeedbackModal()">
+        <div class="w-full max-w-md rounded-2xl shadow-2xl p-6 anim-pop-in relative" style="background: var(--surface);">
+            <button onclick="closeFeedbackModal()" class="absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center text-lg" style="color: var(--ink-muted); background: var(--sand);">&times;</button>
+            <h3 class="font-display text-lg font-bold mb-1" style="color: var(--rosewood-deep);"><i class="fa-solid fa-star ml-1" style="color: var(--gold);"></i> شاركينا تقييمك</h3>
+            <p class="text-[11px] mb-4" style="color: var(--ink-muted);">تقييمك هيساعد هوانم تانيين يشتروا بثقة، وهيظهر مباشرة في صفحة المتجر.</p>
+            <div class="space-y-3">
+                <div id="fb-stars-pick" class="flex justify-center gap-1">
+                    <i class="fa-solid fa-star fb-star-pick" data-v="1"></i>
+                    <i class="fa-solid fa-star fb-star-pick" data-v="2"></i>
+                    <i class="fa-solid fa-star fb-star-pick" data-v="3"></i>
+                    <i class="fa-solid fa-star fb-star-pick" data-v="4"></i>
+                    <i class="fa-solid fa-star fb-star-pick" data-v="5"></i>
+                </div>
+                <input type="text" id="fb-name" placeholder="اسمك" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);">
+                <input type="text" id="fb-city" placeholder="محافظتك (مثال: المحلة الكبرى)" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);">
+                <textarea id="fb-text" placeholder="اكتبي رأيك في المنتج والخامة والتعامل..." rows="3" class="w-full rounded-lg p-2.5 text-xs outline-none" style="border: 1px solid var(--line); background: var(--surface);"></textarea>
+                <button id="fb-submit-btn" onclick="submitFeedback()" class="btn-primary w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> نشر التقييم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const $ = id => document.getElementById(id);
+        const esc = s => escapeHtml(s || '');
+
+        /* ========== عرض التقييمات العامة ========== */
+        function starsOf(n) {
+            let s = '';
+            for (let i = 1; i <= 5; i++) s += `<i class="fa-${i <= n ? 'solid' : 'regular'} fa-star"></i>`;
+            return s;
+        }
+        function fbCard(f) {
+            return `
+            <div class="fb-card space-y-2 anim-pop-in">
+                <div class="fb-stars">${starsOf(f.rating || 5)}</div>
+                <p class="text-sm leading-relaxed" style="color: var(--ink);">${esc(f.text)}</p>
+                <p class="text-xs font-bold" style="color: var(--ink-muted);">${esc(f.name)}${f.city ? ' — ' + esc(f.city) : ''}</p>
+            </div>`;
+        }
+        async function renderFeedback() {
+            const wrap = $('feedback-dynamic');
+            if (!wrap) return;
+            try {
+                const { data, error } = await _supabase.from('feedback').select('*').order('created_at', { ascending: false }).limit(24);
+                if (error) throw error;
+                wrap.innerHTML = (data && data.length) ? data.map(fbCard).join('') : '';
+                wrap.style.display = (data && data.length) ? '' : 'none';
+            } catch (err) {
+                console.warn('جدول التقييمات غير موجود بعد:', err.message);
+                wrap.style.display = 'none';
+            }
+        }
+
+        /* ========== زر التقييم في قسم الآراء ========== */
+        const h2 = [...document.querySelectorAll('h2')].find(h => h.textContent.includes('آراء هوانم'));
+        if (h2) {
+            h2.outerHTML = `
+                <div class="flex items-center justify-between flex-wrap gap-3 mb-10">
+                    <h2 class="font-display text-xl md:text-2xl font-semibold" style="color: var(--ink);">آراء هوانم المحلة الكبرى والمحافظات</h2>
+                    <button onclick="openFeedbackModal()" class="btn-primary px-5 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-star" style="color: var(--gold-soft);"></i> أضيفي تقييمك بعد الشراء
+                    </button>
+                </div>`;
+            const grid = h2.parentElement.querySelector('.grid.grid-cols-1.md\\:grid-cols-3');
+            if (grid) grid.insertAdjacentHTML('beforebegin', '<div id="feedback-dynamic" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"></div>');
+        }
+
+        /* ========== نموذج التقييم ========== */
+        let fbRating = 5;
+        function paintStars() {
+            document.querySelectorAll('.fb-star-pick').forEach(st => st.classList.toggle('is-on', Number(st.dataset.v) <= fbRating));
+        }
+        document.querySelectorAll('.fb-star-pick').forEach(st => st.addEventListener('click', () => { fbRating = Number(st.dataset.v); paintStars(); }));
+        paintStars();
+
+        window.openFeedbackModal = function () {
+            const m = $('feedback-modal');
+            m.classList.remove('hidden');
+            requestAnimationFrame(() => m.classList.add('opacity-100'));
+        };
+        window.closeFeedbackModal = function () {
+            const m = $('feedback-modal');
+            m.classList.remove('opacity-100');
+            setTimeout(() => m.classList.add('hidden'), 250);
+        };
+        window.submitFeedback = async function () {
+            const name = $('fb-name').value.trim();
+            const city = $('fb-city').value.trim();
+            const text = $('fb-text').value.trim();
+            if (!name || !text) { toast('يرجى كتابة الاسم والتقييم', 'error'); return; }
+            const btn = $('fb-submit-btn');
+            btn.disabled = true;
+            try {
+                const { error } = await _supabase.from('feedback').insert([{ name, city, rating: fbRating, text }]);
+                if (error) throw error;
+                const wrap = $('feedback-dynamic');
+                if (wrap) {
+                    wrap.style.display = '';
+                    wrap.insertAdjacentHTML('afterbegin', fbCard({ name, city, rating: fbRating, text }));
+                }
+                $('fb-name').value = ''; $('fb-city').value = ''; $('fb-text').value = '';
+                fbRating = 5; paintStars();
+                closeFeedbackModal();
+                toast('شكراً لكِ! تم نشر تقييمك بنجاح 🌸');
+            } catch (err) {
+                console.error(err);
+                toast('حدث خطأ أثناء النشر: ' + err.message, 'error');
+            } finally { btn.disabled = false; }
+        };
+
+        /* ========== تبويب إدارة التقييمات في لوحة الإدارة ========== */
+        const catTabBtn = $('admin-tab-btn-categories');
+        if (catTabBtn) {
+            catTabBtn.insertAdjacentHTML('afterend', `
+                <button id="admin-tab-btn-feedback" onclick="switchAdminTab('feedback')" class="px-4 py-2 text-xs font-bold" style="border-bottom: 2px solid transparent; color: var(--ink-muted);">التقييمات</button>`);
+            $('admin-tab-categories').insertAdjacentHTML('afterend', `
+                <div id="admin-tab-feedback" class="space-y-4 hidden">
+                    <h4 class="font-bold text-sm" style="color: var(--ink);">تقييمات العميلات المنشورة:</h4>
+                    <div id="admin-feedback-list" class="space-y-2"></div>
+                </div>`);
+        }
+        async function renderAdminFeedback() {
+            const wrap = $('admin-feedback-list');
+            if (!wrap) return;
+            try {
+                const { data, error } = await _supabase.from('feedback').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                wrap.innerHTML = (data && data.length) ? data.map(f => `
+                    <div class="card rounded-lg p-3 flex items-center justify-between gap-3 text-xs">
+                        <div class="min-w-0">
+                            <span class="font-bold block truncate" style="color: var(--ink);">${esc(f.text)}</span>
+                            <span class="text-[10px]" style="color: var(--ink-muted);">${esc(f.name)}${f.city ? ' — ' + esc(f.city) : ''} • ${'★'.repeat(f.rating || 5)}</span>
+                        </div>
+                        <button onclick="deleteFeedback(${f.id})" class="px-2.5 py-1 rounded text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-50 flex-shrink-0">حذف</button>
+                    </div>`).join('') : '<p class="text-xs text-center py-4" style="color: var(--ink-muted);">لا توجد تقييمات بعد.</p>';
+            } catch (err) {
+                wrap.innerHTML = '<p class="text-xs text-center py-4" style="color: var(--rosewood);">تعذر تحميل التقييمات.</p>';
+            }
+        }
+        window.deleteFeedback = async function (id) {
+            const ok = await showConfirm('حذف هذا التقييم نهائياً؟');
+            if (!ok) return;
+            try {
+                const { error } = await _supabase.from('feedback').delete().eq('id', id);
+                if (error) throw error;
+                toast('تم حذف التقييم');
+                renderAdminFeedback(); renderFeedback();
+            } catch (err) { toast('خطأ في الحذف: ' + err.message, 'error'); }
+        };
+        const _sat = window.switchAdminTab;
+        window.switchAdminTab = function (tab) {
+            _sat(tab);
+            const panel = $('admin-tab-feedback'), btn = $('admin-tab-btn-feedback');
+            if (!panel) return;
+            const show = tab === 'feedback';
+            panel.classList.toggle('hidden', !show);
+            btn.style.borderColor = show ? 'var(--rosewood)' : 'transparent';
+            btn.style.color = show ? 'var(--rosewood)' : 'var(--ink-muted)';
+            if (show) renderAdminFeedback();
+        };
+        const _tam = window.toggleAdminModal;
+        window.toggleAdminModal = function () { _tam.apply(this, arguments); if (isAdminLoggedIn) renderAdminFeedback(); };
+
+        /* ========== دعوة للتقييم بعد إرسال الطلب ========== */
+        const _sow = window.sendOrderWhatsApp;
+        window.sendOrderWhatsApp = function () {
+            _sow.apply(this, arguments);
+            setTimeout(() => toast('بعد استلام طلبك، شرفينا بتقييمك من قسم آراء العميلات 🌸', 'info'), 1800);
+        };
+
+        renderFeedback();
     })();
     </script>
 
