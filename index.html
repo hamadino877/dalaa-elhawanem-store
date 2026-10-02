@@ -1620,5 +1620,200 @@
     updateCartUI();
 })();
 </script>
+<!-- ===== إضافة: بحث + مقاسات/ألوان تحت الصورة + عربون + الصور =====
+     الصقي هذا الكود كاملاً قبل وسم </body> في آخر الملف (بعد آخر سكريبت) -->
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    const arr = v => Array.isArray(v) ? v : [];
+
+    /* ===== إعدادات العربون (غيّري الرقم كما تريدين) ===== */
+    const DEPOSIT_AMOUNT = 100; // جنيه
+
+    /* ===== صورة بديلة لو الصورة ما اتحملتش ===== */
+    const PH = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#F1E7D9"/>' +
+        '<text x="200" y="195" font-family="Arial" font-size="26" text-anchor="middle" fill="#AD8A55">دلع الهوانم</text>' +
+        '<text x="200" y="230" font-family="Arial" font-size="16" text-anchor="middle" fill="#7A6C63">الصورة غير متاحة</text></svg>');
+    document.addEventListener('error', e => {
+        const t = e.target;
+        if (t && t.tagName === 'IMG' && !t.dataset.fb) { t.dataset.fb = '1'; t.src = PH; }
+    }, true);
+
+    /* ===== ألوان للدوائر الصغيرة ===== */
+    const COLOR_MAP = {
+        'أسود':'#111','اسود':'#111','أبيض':'#fff','ابيض':'#fff','بيج':'#D9C3A0','بينك':'#F4A6C0','وردي':'#F4A6C0',
+        'أحمر':'#C0392B','احمر':'#C0392B','أزرق':'#2E5C9A','ازرق':'#2E5C9A','كحلي':'#1B2A49','أخضر':'#3B7A57',
+        'اخضر':'#3B7A57','زيتي':'#6B7040','رمادي':'#8A8A8A','بني':'#6B4423','عنابي':'#6D1F2F','موف':'#8E6BAE',
+        'بنفسجي':'#6A3F8C','أصفر':'#E6C229','اصفر':'#E6C229','برتقالي':'#E67E22','سماوي':'#7FC4E0',
+        'فيروزي':'#2AB7B0','ذهبي':'#C9A24B','فضي':'#BFC1C2','كافيه':'#8B6A4F','لبني':'#EDE3D3','خمري':'#722F37'
+    };
+    const dot = c => COLOR_MAP[c] ? `<span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:${COLOR_MAP[c]};border:1px solid var(--line);margin-left:4px;vertical-align:middle"></span>` : '';
+
+    /* ===== 1) شريط البحث ===== */
+    let searchQuery = '';
+    $('products-section').querySelector('div.flex').insertAdjacentHTML('afterend', `
+        <div class="relative mb-6 max-w-xl">
+            <i class="fa-solid fa-magnifying-glass absolute top-1/2 -translate-y-1/2 right-4 text-sm" style="color:var(--ink-muted);"></i>
+            <input id="search-input" type="search" placeholder="ابحثي عن منتج، قسم، أو وصف..." autocomplete="off"
+                   class="w-full rounded-xl py-3 pr-11 pl-10 text-sm outline-none" style="border:1px solid var(--line);background:var(--surface);">
+            <button id="search-clear" type="button" class="hidden absolute top-1/2 -translate-y-1/2 left-3 w-6 h-6 rounded-full text-sm" style="color:var(--ink-muted);background:var(--sand);">&times;</button>
+        </div>`);
+    let st = null;
+    $('search-input').addEventListener('input', e => {
+        clearTimeout(st);
+        st = setTimeout(() => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            $('search-clear').classList.toggle('hidden', !searchQuery);
+            renderProducts();
+        }, 200);
+    });
+    $('search-clear').addEventListener('click', () => {
+        $('search-input').value = ''; searchQuery = '';
+        $('search-clear').classList.add('hidden'); renderProducts();
+    });
+
+    /* ===== 2) عرض المنتجات: مقاسات وألوان تحت الصورة + تقليب الصور ===== */
+    const imgsOf = p => { const a = arr(p.images).filter(Boolean); return a.length ? a : [productImage(p)]; };
+    const cardIdx = {};
+    window.cardImg = function (id, dir, ev) {
+        ev && ev.stopPropagation();
+        const p = productsList.find(x => x.id === id); if (!p) return;
+        const list = imgsOf(p);
+        cardIdx[id] = ((cardIdx[id] || 0) + dir + list.length) % list.length;
+        const el = $('pimg-' + id); if (el) { el.dataset.fb = ''; el.src = list[cardIdx[id]]; }
+    };
+
+    window.renderProducts = function () {
+        const grid = $('products-grid'), heading = $('products-heading');
+        let list = productsList;
+        if (searchQuery) {
+            list = productsList.filter(p => {
+                const cat = categoriesList.find(c => c.id === p.category_id);
+                const hay = [p.title, p.desc, cat && cat.name, arr(p.sizes).join(' '), arr(p.colors).join(' ')].join(' ').toLowerCase();
+                return hay.includes(searchQuery);
+            });
+            heading.textContent = `نتائج البحث (${list.length})`;
+        } else {
+            if (activeCategoryId !== 'all') list = productsList.filter(p => p.category_id === activeCategoryId);
+            const cat = categoriesList.find(c => c.id === activeCategoryId);
+            heading.textContent = activeCategoryId === 'all' ? 'المنتجات المتاحة حالياً' : (cat ? cat.name : 'تصنيف');
+        }
+        if (!list.length) {
+            grid.innerHTML = `<p class="col-span-full text-center py-10 text-sm" style="color:var(--ink-muted);">${searchQuery ? 'لا توجد نتائج مطابقة لبحثك.' : 'لا توجد منتجات في هذا القسم حالياً.'}</p>`;
+            return;
+        }
+        grid.innerHTML = list.map(p => {
+            const wished = wishlist.some(w => w.id === p.id);
+            const imgs = imgsOf(p), sizes = arr(p.sizes), colors = arr(p.colors);
+            const chip = 'display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:6px;font-size:10px;font-weight:700;color:var(--ink);background:var(--paper);';
+            return `
+            <div class="product-card card rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                <div class="space-y-3">
+                    <div class="relative aspect-square rounded-xl overflow-hidden group" style="background:var(--sand);">
+                        <img id="pimg-${p.id}" src="${escapeHtml(imgs[cardIdx[p.id] || 0] || imgs[0])}" alt="${escapeHtml(p.title)}" class="pimg w-full h-full object-cover" loading="lazy">
+                        ${p.old_price ? `<span class="tag-sale absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
+                        <div class="absolute top-2 left-2 flex flex-col gap-2">
+                            <button onclick="openQuickView(${p.id})" title="عرض سريع" class="card-action-btn text-xs" style="color:var(--ink);"><i class="fa-solid fa-eye"></i></button>
+                            <button onclick="toggleWishlist(${p.id}, event)" title="المفضلة" class="card-action-btn wish-btn ${wished ? 'is-wished' : ''}" style="color:${wished ? '#fff' : 'var(--rosewood)'};"><i class="fa-${wished ? 'solid' : 'regular'} fa-heart"></i></button>
+                        </div>
+                        ${imgs.length > 1 ? `
+                        <button onclick="cardImg(${p.id}, 1, event)" class="card-action-btn absolute top-1/2 -translate-y-1/2 right-2" style="width:28px;height:28px"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                        <button onclick="cardImg(${p.id}, -1, event)" class="card-action-btn absolute top-1/2 -translate-y-1/2 left-2" style="width:28px;height:28px"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>` : ''}
+                    </div>
+                    ${(sizes.length || colors.length) ? `
+                    <div class="space-y-1.5">
+                        ${sizes.length ? `<div class="flex flex-wrap items-center gap-1"><span class="text-[10px] font-bold" style="color:var(--ink-muted);">المقاسات:</span>${sizes.map(s => `<span style="${chip}">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
+                        ${colors.length ? `<div class="flex flex-wrap items-center gap-1"><span class="text-[10px] font-bold" style="color:var(--ink-muted);">الألوان:</span>${colors.map(c => `<span style="${chip}">${dot(c)}${escapeHtml(c)}</span>`).join('')}</div>` : ''}
+                    </div>` : ''}
+                    <h3 class="font-bold text-base leading-snug" style="color:var(--ink);">${escapeHtml(p.title)}</h3>
+                    <p class="text-xs line-clamp-2" style="color:var(--ink-muted);">${escapeHtml(p.desc || '')}</p>
+                </div>
+                <div class="space-y-3 pt-2" style="border-top:1px solid var(--line);">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <span class="text-base font-black" style="color:var(--rosewood-deep);">${p.price} ج.م</span>
+                            ${p.old_price ? `<span class="text-xs line-through mr-1" style="color:var(--ink-muted);">${p.old_price} ج.م</span>` : ''}
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${p.status === 'out' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">${p.status === 'out' ? 'نفدت الكمية' : 'متوفر'}</span>
+                    </div>
+                    <button onclick="addToCart(${p.id}, event)" ${p.status === 'out' ? 'disabled' : ''} class="btn-primary w-full py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button>
+                </div>
+            </div>`;
+        }).join('');
+    };
+    // البحث يشمل كل الأقسام: عند اختيار قسم يتم تفريغ البحث
+    const origSelect = window.selectCategory;
+    window.selectCategory = function (id) {
+        searchQuery = ''; $('search-input').value = ''; $('search-clear').classList.add('hidden');
+        origSelect(id);
+    };
+    if (productsList.length) renderProducts();
+
+    /* ===== 3) العربون عند الدفع عند الاستلام ===== */
+    const totals = () => {
+        const q = cart.reduce((a, i) => a + i.qty, 0);
+        const sub = cart.reduce((a, i) => a + parseFloat(i.price) * i.qty, 0);
+        const disc = q > 1 ? (q - 1) * 50 : 0;
+        return { sub, disc, total: Math.max(0, sub - disc) };
+    };
+    const depositOf = total => total > 0 ? Math.min(DEPOSIT_AMOUNT, total) : DEPOSIT_AMOUNT;
+
+    window.onPaymentMethodChange = function () {
+        const sel = document.querySelector('input[name="payment-method"]:checked')?.value;
+        const box = $('payment-details');
+        const prevDm = $('deposit-method')?.value || '';
+        if (sel === 'cod') {
+            const t = totals().total, dep = depositOf(t);
+            box.innerHTML = `
+                <p class="font-bold">الدفع عند الاستلام يتطلب عربون لتأكيد الطلب:</p>
+                <p>العربون: <b style="color:var(--rosewood-deep);">${dep} ج.م</b>${t > 0 ? ` &nbsp;•&nbsp; المتبقي عند الاستلام: <b>${Math.max(0, t - dep)} ج.م</b>` : ''}</p>
+                <select id="deposit-method" class="w-full rounded-lg p-2 text-xs bg-white" style="border:1px solid var(--line);">
+                    <option value="">اختاري طريقة تحويل العربون</option>
+                    <option value="vodafone_cash" ${prevDm === 'vodafone_cash' ? 'selected' : ''}>فودافون كاش</option>
+                    <option value="instapay" ${prevDm === 'instapay' ? 'selected' : ''}>إنستاباي (InstaPay)</option>
+                </select>
+                <p>حوّلي العربون على رقم: <span class="font-mono font-black text-emerald-800">${PAYMENT_INFO.vodafone_cash.number}</span></p>
+                <p class="opacity-80">ابعتي صورة إيصال التحويل على الواتساب بعد إرسال الطلب.</p>`;
+            box.classList.remove('hidden');
+        } else if (sel && PAYMENT_INFO[sel]) {
+            const info = PAYMENT_INFO[sel];
+            box.innerHTML = `<p class="font-bold">برجاء التحويل إلى رقم ${info.label}:</p>
+                <p class="font-mono text-xs font-black text-emerald-800">${info.number}</p>
+                <p class="opacity-80">سيتم إرسال تأكيد التحويل في الرسالة عبر الواتساب.</p>`;
+            box.classList.remove('hidden');
+        } else box.classList.add('hidden');
+    };
+    const prevUpdate = window.updateCartUI;
+    window.updateCartUI = function () { prevUpdate(); window.onPaymentMethodChange(); };
+
+    window.sendOrderWhatsApp = function () {
+        if (!cart.length) { toast('السلة فارغة، يرجى إضافة منتجات أولاً', 'error'); return; }
+        const name = $('cust-name').value.trim(), phone = $('cust-phone').value.trim(), address = $('cust-address').value.trim();
+        if (!name || !phone || !address) { toast('يرجى ملء جميع بيانات التوصيل', 'error'); return; }
+        const pay = document.querySelector('input[name="payment-method"]:checked')?.value || 'cod';
+        const labels = { cod: 'الدفع عند الاستلام (مع عربون)', vodafone_cash: 'فودافون كاش', instapay: 'إنستاباي' };
+        const dm = $('deposit-method')?.value || '';
+        if (pay === 'cod' && !dm) { toast('اختاري طريقة تحويل العربون أولاً', 'error'); return; }
+        const { sub, disc, total } = totals();
+
+        let msg = `🛍️ *طلب جديد من متجر دلع الهوانم*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n💳 *طريقة الدفع:* ${labels[pay] || pay}\n\n📦 *الطلبات:*\n`;
+        cart.forEach((i, k) => {
+            const o = [i.size && `مقاس: ${i.size}`, i.color && `لون: ${i.color}`].filter(Boolean).join(' - ');
+            msg += `${k + 1}. ${i.title}${o ? ' (' + o + ')' : ''} (العدد: ${i.qty}) - ${i.price * i.qty} ج.م\n`;
+        });
+        msg += `\n💰 *المجموع:* ${sub} ج.م\n`;
+        if (disc > 0) msg += `🎉 *الخصم المستحق:* ${disc} ج.م\n`;
+        msg += `✨ *الإجمالي النهائي:* ${total} ج.م\n`;
+        if (pay === 'cod') {
+            const dep = depositOf(total);
+            msg += `\n🔒 *العربون:* ${dep} ج.م (عبر ${PAYMENT_INFO[dm].label})\n💵 *المتبقي عند الاستلام:* ${Math.max(0, total - dep)} ج.م\n📎 سأرسل صورة إيصال التحويل الآن.\n`;
+        }
+        window.open(`https://wa.me/201065852975?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
+    updateCartUI();
+})();
+</script>
 </body>
 </html>
