@@ -75,7 +75,39 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
         }
+    
+        /* ===== شريط الأقسام المتحرك ===== */
+        #cats-marquee { background: linear-gradient(90deg, var(--gold), #C7A367, var(--gold)); overflow: hidden; white-space: nowrap; position: relative; }
+        #marquee-track { display: inline-flex; animation: marqueeMove 35s linear infinite; will-change: transform; }
+        #cats-marquee:hover #marquee-track { animation-play-state: paused; }
+        @keyframes marqueeMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .marquee-item { display: inline-flex; align-items: center; gap: 8px; padding: 8px 26px; color: #2A211D; font-weight: 800; font-size: 12px; white-space: nowrap; border: none; background: transparent; cursor: pointer; font-family: 'Cairo', sans-serif; }
+        .marquee-item:hover { color: var(--rosewood-deep); }
+
+        /* ===== قائمة الأقسام المنسدلة ===== */
+        #cats-menu { animation: popIn .18s ease both; }
+        .cat-menu-item:hover { background: var(--sand); }
+
+        /* ===== معرض الصور المحسّن ===== */
+        #qv-img { cursor: zoom-in; transition: transform .45s ease; }
+        #qv-img:hover { transform: scale(1.18); }
+        #qv-thumbs img { width: 56px !important; height: 56px !important; border-radius: 12px !important; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+        .pimg { cursor: zoom-in; }
+
+        /* ===== بوكس الصور (Lightbox) ===== */
+        #img-lightbox img { max-width: 92vw; max-height: 82vh; object-fit: contain; border-radius: 14px; }
+        .lb-btn { width: 46px; height: 46px; border-radius: 9999px; background: rgba(255,255,255,.14); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background .2s ease; backdrop-filter: blur(4px); }
+        .lb-btn:hover { background: rgba(255,255,255,.3); }
+
+        /* ===== بطاقات السياسات ===== */
+        .policy-card { border: 1px solid rgba(250,245,238,.16); border-radius: 18px; padding: 20px; }
+        .policy-card p { color: rgba(250,245,238,.72); }
+        .policy-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; font-weight: 800; color: var(--ink); background: var(--gold-soft); padding: 7px 16px; border-radius: 10px; transition: opacity .2s ease; }
+        .policy-btn:hover { opacity: .85; }
+        .policy-modal { transition: opacity .25s ease; }
+
     </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -92,6 +124,11 @@
                 المحلة الكبرى - شارع البهلوان
             </span>
         </div>
+    </div>
+
+    <!-- شريط الأقسام المتحرك -->
+    <div id="cats-marquee" dir="ltr">
+        <div id="marquee-track"></div>
     </div>
 
     <!-- 2. الهيدر -->
@@ -218,6 +255,20 @@
                 </a>
             </div>
         </div>
+        <!-- سياسة الاسترجاع وسياسة الشحن -->
+        <div class="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-center md:text-right">
+            <div class="policy-card">
+                <h4 class="font-bold text-sm mb-2" style="color: var(--gold-soft);"><i class="fa-solid fa-rotate-left ml-1"></i> سياسة الاسترجاع والاستبدال</h4>
+                <p class="text-[11px] leading-relaxed">استرجاع أو استبدال مجاني خلال 14 يوماً من استلام الطلب، بشرط سلامة المنتج وبحالته الأصلية مع الاستراحة (التاج). المنتجات المستعملة أو المغسولة لا تقبل الاسترجاع.</p>
+                <button onclick="openPolicy('return')" class="policy-btn"><i class="fa-solid fa-circle-info"></i> اقرأي التفاصيل الكاملة</button>
+            </div>
+            <div class="policy-card">
+                <h4 class="font-bold text-sm mb-2" style="color: var(--gold-soft);"><i class="fa-solid fa-truck-fast ml-1"></i> سياسة الشحن والتوصيل</h4>
+                <p class="text-[11px] leading-relaxed">شحن لجميع محافظات مصر خلال 2-5 أيام عمل عبر شركات شحن موثوقة، مع إمكانية معاينة المنتج قبل الدفع. طلبات الدفع عند الاستلام تتطلب عربون 100 ج.م.</p>
+                <button onclick="openPolicy('shipping')" class="policy-btn"><i class="fa-solid fa-circle-info"></i> اقرأي التفاصيل الكاملة</button>
+            </div>
+        </div>
+        
         <div class="text-center text-xs opacity-50 pt-4">
             جميع الحقوق محفوظة &copy; 2026 - دلع الهوانم <span class="mx-1" style="color: var(--gold);">•</span> النسخة V3
         </div>
@@ -1815,5 +1866,190 @@
     updateCartUI();
 })();
 </script>
+
+    <!-- نافذتا سياسة الاسترجاع وسياسة الشحن -->
+    <div id="policy-modal" class="policy-modal fixed inset-0 bg-black/60 z-[75] hidden opacity-0 flex items-center justify-center p-4" onclick="if(event.target===this) closePolicy()">
+        <div class="w-full max-w-lg rounded-2xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto anim-pop-in relative" style="background: var(--surface);">
+            <button onclick="closePolicy()" class="absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center text-lg" style="color: var(--ink-muted); background: var(--sand);">&times;</button>
+            <div id="policy-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- بوكس عرض الصور (Lightbox) -->
+    <div id="img-lightbox" class="fixed inset-0 bg-black/90 z-[95] hidden items-center justify-center" onclick="if(event.target===this) lbClose()">
+        <button onclick="lbClose()" class="lb-btn absolute top-4 left-4 z-10"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="lbNav(1)" class="lb-btn absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-10"><i class="fa-solid fa-chevron-right"></i></button>
+        <button onclick="lbNav(-1)" class="lb-btn absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-10"><i class="fa-solid fa-chevron-left"></i></button>
+        <img id="lb-img" src="" alt="صورة المنتج">
+        <span id="lb-counter" class="absolute bottom-5 right-1/2 translate-x-1/2 text-white text-xs font-bold px-3 py-1 rounded-full" style="background: rgba(255,255,255,.15);"></span>
+    </div>
+
+    <script>
+    (function () {
+        const $ = id => document.getElementById(id);
+        const arr = v => Array.isArray(v) ? v : [];
+
+        /* ========== 1) شريط الأقسام المتحرك ========== */
+        function buildMarquee() {
+            const track = $('marquee-track');
+            if (!track) return;
+            const items = [{ name: 'كل المنتجات', id: 'all', img: IMGS.heroSet }]
+                .concat(categoriesList.map(c => ({ name: c.name, id: c.id, img: categoryImage(c.name) })));
+            if (!items.length) return;
+            const one = items.map(it => `
+                <button class="marquee-item" data-cat="${it.id}">
+                    <img src="${it.img}" style="width:22px;height:22px;border-radius:9999px;object-fit:cover;border:1px solid rgba(42,33,29,.25);">
+                    ${escapeHtml(it.name)}
+                </button>`).join('<span style="color:rgba(42,33,29,.45);font-size:10px;">✦</span>');
+            track.innerHTML = one + '<span style="color:rgba(42,33,29,.45);font-size:10px;">✦</span>' + one + '<span style="color:rgba(42,33,29,.45);font-size:10px;">✦</span>';
+            track.querySelectorAll('.marquee-item').forEach(b => b.addEventListener('click', () => {
+                selectCategory(b.dataset.cat === 'all' ? 'all' : Number(b.dataset.cat));
+            }));
+        }
+
+        /* ========== 2) قائمة الأقسام المنسدلة ========== */
+        const headerActions = document.querySelector('header .max-w-6xl .flex.items-center.gap-2');
+        headerActions.insertAdjacentHTML('beforebegin', `
+            <div class="relative order-2 lg:order-1" id="cats-menu-wrap">
+                <button id="cats-menu-btn" class="btn-outline px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-bars" style="color: var(--rosewood);"></i>
+                    <span class="hidden sm:inline">الأقسام</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] opacity-60"></i>
+                </button>
+                <div id="cats-menu" class="hidden absolute top-full right-0 mt-2 w-72 rounded-2xl shadow-2xl overflow-hidden z-50" style="background: var(--surface); border: 1px solid var(--line);">
+                    <div class="p-3 font-bold text-xs flex items-center gap-2" style="border-bottom: 1px solid var(--line); color: var(--rosewood-deep);">
+                        <i class="fa-solid fa-border-all" style="color: var(--gold);"></i> كل أقسام دلع الهوانم
+                    </div>
+                    <div id="cats-menu-list" class="max-h-80 overflow-y-auto p-2 space-y-1"></div>
+                </div>
+            </div>`);
+        window.toggleCatsMenu = function (e) {
+            if (e) e.stopPropagation();
+            $('cats-menu').classList.toggle('hidden');
+        };
+        $('cats-menu-btn').addEventListener('click', toggleCatsMenu);
+        document.addEventListener('click', e => {
+            if ($('cats-menu') && !$('cats-menu-wrap').contains(e.target)) $('cats-menu').classList.add('hidden');
+        });
+        function buildCatsMenu() {
+            const list = $('cats-menu-list');
+            if (!list) return;
+            const items = [{ name: 'كل المنتجات', id: 'all', img: IMGS.heroSet, count: productsList.length }]
+                .concat(categoriesList.map(c => ({
+                    name: c.name, id: c.id, img: categoryImage(c.name),
+                    count: productsList.filter(p => p.category_id === c.id).length
+                })));
+            list.innerHTML = items.map(it => `
+                <button class="cat-menu-item w-full flex items-center gap-3 p-2 rounded-xl text-right transition" data-cat="${it.id}">
+                    <img src="${it.img}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0" style="border: 1px solid var(--line);">
+                    <span class="flex-1 text-xs font-bold" style="color: var(--ink);">${escapeHtml(it.name)}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0" style="background: var(--sand); color: var(--ink-muted);">${it.count} منتج</span>
+                </button>`).join('');
+            list.querySelectorAll('.cat-menu-item').forEach(b => b.addEventListener('click', () => {
+                selectCategory(b.dataset.cat === 'all' ? 'all' : Number(b.dataset.cat));
+                $('cats-menu').classList.add('hidden');
+            }));
+        }
+
+        // إعادة البناء بعد كل تحديث للبيانات
+        const _fc = window.fetchCategories;
+        window.fetchCategories = async function () { await _fc.apply(this, arguments); buildMarquee(); buildCatsMenu(); };
+        const _fp = window.fetchProducts;
+        window.fetchProducts = async function () { await _fp.apply(this, arguments); buildMarquee(); buildCatsMenu(); };
+        buildMarquee();
+
+        /* ========== 3) بوكس عرض الصور الكاملة (Lightbox) ========== */
+        let lbList = [], lbIdx = 0;
+        window.lbOpen = function (srcs, idx) {
+            lbList = srcs; lbIdx = idx || 0;
+            $('img-lightbox').classList.remove('hidden');
+            $('img-lightbox').classList.add('flex');
+            lbRender();
+            document.body.style.overflow = 'hidden';
+        };
+        function lbRender() {
+            $('lb-img').src = lbList[lbIdx];
+            $('lb-counter').textContent = (lbIdx + 1) + ' / ' + lbList.length;
+        }
+        window.lbNav = function (d) {
+            lbIdx = (lbIdx + d + lbList.length) % lbList.length;
+            lbRender();
+        };
+        window.lbClose = function () {
+            $('img-lightbox').classList.add('hidden');
+            $('img-lightbox').classList.remove('flex');
+            document.body.style.overflow = '';
+        };
+        const imgsOfP = p => { const a = arr(p.images).filter(Boolean); return a.length ? a : [productImage(p)]; };
+        // فتح البوكس عند الضغط على صورة المنتج أو صورة العرض السريع
+        document.addEventListener('click', e => {
+            if (e.target.id === 'qv-img' && typeof qvId !== 'undefined' && qvId) {
+                const p = productsList.find(x => x.id === qvId);
+                if (p) lbOpen(imgsOfP(p), 0);
+            } else if (e.target.classList && e.target.classList.contains('pimg')) {
+                const id = parseInt(e.target.id.replace('pimg-', ''));
+                const p = productsList.find(x => x.id === id);
+                if (p) {
+                    const list = imgsOfP(p);
+                    let idx = Math.max(0, list.indexOf(e.target.getAttribute('src')));
+                    lbOpen(list, idx);
+                }
+            }
+        });
+        // سحب باللمس + أسهم الكيبورد
+        let touchX = null;
+        $('img-lightbox').addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+        $('img-lightbox').addEventListener('touchend', e => {
+            if (touchX === null) return;
+            const dx = e.changedTouches[0].clientX - touchX;
+            if (Math.abs(dx) > 45) lbNav(dx > 0 ? 1 : -1);
+            touchX = null;
+        });
+        document.addEventListener('keydown', e => {
+            if ($('img-lightbox').classList.contains('hidden')) return;
+            if (e.key === 'Escape') lbClose();
+            if (e.key === 'ArrowRight') lbNav(1);
+            if (e.key === 'ArrowLeft') lbNav(-1);
+        });
+
+        /* ========== 4) نوافذ السياسات ========== */
+        const POLICIES = {
+            return: `
+                <h3 class="font-display text-lg font-bold mb-1" style="color: var(--rosewood-deep);"><i class="fa-solid fa-rotate-left ml-1"></i> سياسة الاسترجاع والاستبدال</h3>
+                <div class="divider-gold w-14 my-3"></div>
+                <div class="space-y-3 text-xs leading-relaxed" style="color: var(--ink);">
+                    <p><b>1. مدة الاسترجاع:</b> يمكنك طلب الاسترجاع أو الاستبدال خلال <b>14 يوماً</b> من تاريخ استلام الطلب.</p>
+                    <p><b>2. حالة المنتج:</b> يجب أن يكون المنتج بحالته الأصلية، غير مستعمل وغير مغسول، مع بطاقة الاستراحة (التاج) والتغليف الأصلي.</p>
+                    <p><b>3. منتجات لا تقبل الاسترجاع:</b> المنتجات المستعملة أو المغسولة أو التالفة بسبب سوء الاستخدام، والمنتجات المخصصة حسب الطلب.</p>
+                    <p><b>4. طرق الاسترداد:</b> يتم رد المبلغ عبر فودافون كاش أو إنستاباي خلال 3-5 أيام عمل بعد استلام المنتج المرتجع وفحصه.</p>
+                    <p><b>5. مصاريف الشحن:</b> في حالة الاستبدال بسبب خطأ من المتجر (مقاس/لون/منتج مختلف) يتحمل المتجر مصاريف الشحن كاملة. في حالة الاسترجاع لسبب شخصي تتحمل العميلة مصاريف شحن الإرجاع.</p>
+                    <p><b>6. طريقة الطلب:</b> تواصلي معنا على واتساب <b dir="ltr">01065852975</b> مع رقم الطلب وسبب الاسترجاع.</p>
+                </div>`,
+            shipping: `
+                <h3 class="font-display text-lg font-bold mb-1" style="color: var(--rosewood-deep);"><i class="fa-solid fa-truck-fast ml-1"></i> سياسة الشحن والتوصيل</h3>
+                <div class="divider-gold w-14 my-3"></div>
+                <div class="space-y-3 text-xs leading-relaxed" style="color: var(--ink);">
+                    <p><b>1. نطاق التوصيل:</b> نوصل لجميع محافظات مصر (القاهرة، الجيزة، الإسكندرية، الدلتا، الصعيد، ومدن القناة والسواحل).</p>
+                    <p><b>2. مدة التوصيل:</b> من 2-5 أيام عمل حسب المحافظة، عبر شركات شحن موثوقة.</p>
+                    <p><b>3. المعاينة قبل الدفع:</b> يمكنك معاينة المنتج قبل دفع باقي المبلغ عند الاستلام.</p>
+                    <p><b>4. العربون:</b> طلبات الدفع عند الاستلام تتطلب عربون تأكيد <b>100 ج.م</b> يُحسم من إجمالي الطلب، ويتم تحويله عبر فودافون كاش أو إنستاباي على رقم <b dir="ltr">01065852975</b>.</p>
+                    <p><b>5. تجهيز الطلب:</b> يتم تجهيز وتغليف الطلب خلال 24 ساعة من تأكيده، ويصلك رقم التتبع على الواتساب.</p>
+                    <p><b>6. الاستلام من المحل:</b> يوجد استلام مجاني من الفرع الرئيسي: المحلة الكبرى - شارع البهلوان.</p>
+                </div>`
+        };
+        window.openPolicy = function (key) {
+            $('policy-modal-content').innerHTML = POLICIES[key] || '';
+            const m = $('policy-modal');
+            m.classList.remove('hidden');
+            requestAnimationFrame(() => m.classList.add('opacity-100'));
+        };
+        window.closePolicy = function () {
+            const m = $('policy-modal');
+            m.classList.remove('opacity-100');
+            setTimeout(() => m.classList.add('hidden'), 250);
+        };
+    })();
+    </script>
+
 </body>
 </html>
