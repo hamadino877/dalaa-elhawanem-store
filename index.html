@@ -114,10 +114,63 @@
         .fb-star-pick:hover { transform: scale(1.15); }
         .fb-star-pick.is-on { color: var(--gold); }
 
+
+        /* ===== V3 Premium UI refinement ===== */
+        html, body { overflow-x: hidden; }
+        body { font-size: 14px; letter-spacing: 0; }
+        header { direction: rtl; }
+        #cats-menu-wrap { direction: rtl; position: relative; z-index: 70; }
+        #cats-menu {
+            direction: rtl;
+            right: 0 !important;
+            left: auto !important;
+            top: calc(100% + 8px) !important;
+            width: min(340px, calc(100vw - 24px)) !important;
+            max-width: calc(100vw - 24px);
+            transform-origin: top right;
+            box-shadow: 0 22px 55px rgba(42,33,29,.18), 0 5px 18px rgba(42,33,29,.08) !important;
+        }
+        #cats-menu-list { scrollbar-width: thin; }
+        #cats-menu .cat-menu-item { direction: rtl; min-height: 58px; }
+        #cats-menu .cat-menu-item:hover { background: #F8F0E6; transform: translateX(-2px); }
+        .product-grid { align-items: stretch; }
+        .product-card {
+            min-width: 0;
+            border-radius: 18px !important;
+            padding: 10px !important;
+            box-shadow: 0 5px 18px rgba(42,33,29,.055);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(42,33,29,.10); border-color: #D7C5AD; }
+        .product-card .pimg-wrap { aspect-ratio: 4 / 5 !important; }
+        .product-card h3 { font-size: 13px !important; line-height: 1.65 !important; min-height: 42px; }
+        .product-card p { font-size: 11px !important; line-height: 1.65 !important; }
+        .product-card .text-base { font-size: 14px !important; }
+        .product-card .card-action-btn { width: 32px; height: 32px; }
+        .product-card .btn-primary { min-height: 40px; font-size: 11px !important; }
+        .product-card img.pimg { background: linear-gradient(180deg,#FBF7F1,#F1E7D9); }
+        .product-card .size-color-info { min-height: 34px; }
+        .section-title { letter-spacing: -.2px; }
+        #category-cards .cat-card { box-shadow: 0 6px 18px rgba(42,33,29,.08); }
+        #products-section { padding-top: 42px; }
+        #products-heading { font-size: clamp(19px, 2.4vw, 27px); }
+        @media (max-width: 639px) {
+            .product-grid { gap: 10px !important; }
+            .product-card { padding: 8px !important; border-radius: 15px !important; }
+            .product-card .space-y-3 { row-gap: 8px; }
+            .product-card h3 { font-size: 12px !important; min-height: 39px; }
+            .product-card p { font-size: 10px !important; }
+            .product-card .text-base { font-size: 13px !important; }
+            .product-card .text-xs { font-size: 9px !important; }
+            .product-card .btn-primary { min-height: 37px; padding-top: 7px !important; padding-bottom: 7px !important; }
+            .product-card .card-action-btn { width: 29px; height: 29px; }
+            #cats-menu { width: min(300px, calc(100vw - 20px)) !important; }
+        }
+        @media (min-width: 640px) {
+            .product-card { padding: 12px !important; }
+        }
+
     </style>
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body class="min-h-screen flex flex-col pb-16 md:pb-0">
     <!-- 1. شريط معلومات علوي -->
@@ -141,7 +194,7 @@
 
     <!-- 2. الهيدر -->
     <header class="border-b sticky top-[30px] z-40" style="background: var(--surface); border-color: var(--line);">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3 flex-wrap lg:flex-nowrap">
+        <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2 flex-wrap lg:flex-nowrap">
             <a href="#" onclick="scrollToId('hero-section'); return false;" class="flex flex-col justify-center py-1">
                 <span class="font-display text-xl md:text-2xl font-bold block leading-tight" style="color: var(--ink);">دلع الهوانم</span>
                 <span class="text-[10px] tracking-wide block" style="color: var(--gold);">أزياء نسائية راقية</span>
@@ -202,7 +255,7 @@
                 <div class="divider-gold w-14 mt-3"></div>
             </div>
         </div>
-        <div id="loading-skeleton" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div id="loading-skeleton" class="product-grid grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
             <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
             <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
             <div class="card rounded-2xl p-4 space-y-3"><div class="skeleton aspect-square rounded-xl"></div><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-3 w-1/2 rounded"></div></div>
@@ -212,7 +265,7 @@
             <p id="load-error-text" class="text-sm font-bold" style="color: var(--rosewood-deep);"></p>
             <button onclick="initStore()" class="btn-primary mt-3 text-xs font-bold px-4 py-2 rounded-lg">إعادة المحاولة</button>
         </div>
-        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden"></div>
+        <div id="products-grid" class="product-grid grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6 hidden"></div>
     </main>
 
     <!-- 6. آراء العميلات -->
@@ -1775,7 +1828,7 @@
             return `
             <div class="product-card card rounded-2xl p-4 flex flex-col justify-between space-y-3">
                 <div class="space-y-3">
-                    <div class="relative aspect-square rounded-xl overflow-hidden group" style="background:var(--sand);">
+                    <div class="pimg-wrap relative aspect-[4/5] rounded-xl overflow-hidden group" style="background:linear-gradient(180deg,#FBF7F1,#F1E7D9);">
                         <img id="pimg-${p.id}" src="${escapeHtml(imgs[cardIdx[p.id] || 0] || imgs[0])}" alt="${escapeHtml(p.title)}" class="pimg w-full h-full object-cover" loading="lazy">
                         ${p.old_price ? `<span class="tag-sale absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-full">خصم مميز</span>` : ''}
                         <div class="absolute top-2 left-2 flex flex-col gap-2">
@@ -1787,7 +1840,7 @@
                         <button onclick="cardImg(${p.id}, -1, event)" class="card-action-btn absolute top-1/2 -translate-y-1/2 left-2" style="width:28px;height:28px"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>` : ''}
                     </div>
                     ${(sizes.length || colors.length) ? `
-                    <div class="space-y-1.5">
+                    <div class="size-color-info space-y-1.5">
                         ${sizes.length ? `<div class="flex flex-wrap items-center gap-1"><span class="text-[10px] font-bold" style="color:var(--ink-muted);">المقاسات:</span>${sizes.map(s => `<span style="${chip}">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
                         ${colors.length ? `<div class="flex flex-wrap items-center gap-1"><span class="text-[10px] font-bold" style="color:var(--ink-muted);">الألوان:</span>${colors.map(c => `<span style="${chip}">${dot(c)}${escapeHtml(c)}</span>`).join('')}</div>` : ''}
                     </div>` : ''}
@@ -1924,7 +1977,7 @@
         /* ========== 2) قائمة الأقسام المنسدلة ========== */
         const headerActions = document.querySelector('header .max-w-6xl .flex.items-center.gap-2');
         headerActions.insertAdjacentHTML('beforebegin', `
-            <div class="relative order-2 lg:order-1" id="cats-menu-wrap">
+            <div class="relative order-2 lg:order-1 shrink-0" id="cats-menu-wrap" dir="rtl">
                 <button id="cats-menu-btn" class="btn-outline px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-bars" style="color: var(--rosewood);"></i>
                     <span class="hidden sm:inline">الأقسام</span>
