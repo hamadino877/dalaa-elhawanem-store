@@ -184,6 +184,34 @@
             #hero-section { min-height: 360px !important; }
             #hero-content h1 { font-size: 1.6rem; }
         }
+
+        /* ===== قسم إسدالات الحج والعمرة ===== */
+        #hajj-section { max-width: 72rem; margin: 0 auto; padding: 28px 16px 8px; }
+        .hajj-box { position: relative; overflow: hidden; border-radius: 28px; color: #FAF5EE; padding: 34px 26px;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(227,213,188,.16) 0, transparent 38%),
+                radial-gradient(circle at 92% 90%, rgba(173,138,85,.22) 0, transparent 42%),
+                linear-gradient(135deg, #12372F 0%, #1D5246 55%, #14403A 100%);
+            border: 1px solid rgba(227,213,188,.45);
+            box-shadow: 0 24px 50px -22px rgba(18,55,47,.65), inset 0 0 0 6px rgba(18,55,47,.9), inset 0 0 0 7px rgba(227,213,188,.35); }
+        .hajj-box::before { content: ""; position: absolute; inset: 0; opacity: .07; pointer-events: none;
+            background-image: repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, #fff 0 1px, transparent 1px 22px); }
+        .hajj-inner { position: relative; z-index: 1; display: grid; gap: 26px; align-items: center; grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .hajj-box { padding: 46px 48px; } .hajj-inner { grid-template-columns: 1.25fr 1fr; gap: 40px; } }
+        .hajj-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 9999px;
+            color: var(--gold-soft); border: 1px solid rgba(227,213,188,.5); background: rgba(255,255,255,.06); }
+        .hajj-title { font-family: 'El Messiri','Cairo',sans-serif; font-weight: 700; line-height: 1.3; font-size: clamp(26px, 5vw, 40px); margin: 14px 0 10px;
+            background: linear-gradient(90deg, #F6E9CC, #E3D5BC 50%, #fff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hajj-sub { font-size: 13px; line-height: 1.9; color: rgba(250,245,238,.82); max-width: 34rem; }
+        .hajj-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .hajj-chip { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 16px; font-size: 12px; font-weight: 700;
+            background: rgba(255,255,255,.07); border: 1px solid rgba(227,213,188,.28); backdrop-filter: blur(3px); }
+        .hajj-chip i { color: var(--gold-soft); font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+        .hajj-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 13px; padding: 12px 22px; border-radius: 14px; transition: transform .2s ease, opacity .2s ease; cursor: pointer; }
+        .hajj-cta:hover { transform: translateY(-2px); }
+        .hajj-cta-gold { background: linear-gradient(90deg, #E3D5BC, #C7A367); color: #2A211D; }
+        .hajj-cta-line { border: 1px solid rgba(227,213,188,.6); color: #FAF5EE; background: rgba(255,255,255,.06); }
+        .hajj-count { font-size: 11px; color: var(--gold-soft); font-weight: 700; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-16 md:pb-0">
@@ -259,6 +287,31 @@
             </div>
         </div>
         <div id="category-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+    </section>
+
+
+    <!-- قسم مميز: إسدالات الحج والعمرة -->
+    <section id="hajj-section" class="scroll-mt-28">
+        <div class="hajj-box">
+            <div class="hajj-inner">
+                <div>
+                    <span class="hajj-badge"><i class="fa-solid fa-kaaba"></i> تشكيلة خاصة لضيوف الرحمن</span>
+                    <h2 class="hajj-title">إسدالات الحج والعمرة</h2>
+                    <p class="hajj-sub">إسدالات أنيقة بخامات خفيفة ومريحة تناسب أجواء الطواف والسعي وطول اليوم، بتصميم محتشم وتفصيل متقن يليق بالرحلة المباركة.</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-6">
+                        <button type="button" id="hajj-shop-btn" class="hajj-cta hajj-cta-gold"><i class="fa-solid fa-bag-shopping"></i> تسوقي التشكيلة</button>
+                        <a id="hajj-wa-btn" href="#" target="_blank" rel="noopener" class="hajj-cta hajj-cta-line"><i class="fa-brands fa-whatsapp"></i> اسألي عن الموديلات</a>
+                        <span id="hajj-count" class="hajj-count"></span>
+                    </div>
+                </div>
+                <div class="hajj-chips">
+                    <div class="hajj-chip"><i class="fa-solid fa-feather-pointed"></i> خامة خفيفة ومريحة</div>
+                    <div class="hajj-chip"><i class="fa-solid fa-sun"></i> مناسبة للأجواء الحارة</div>
+                    <div class="hajj-chip"><i class="fa-solid fa-shirt"></i> سهلة الارتداء والصلاة</div>
+                    <div class="hajj-chip"><i class="fa-solid fa-gift"></i> مثالية كهدية للمعتمرة</div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- 5. المنتجات -->
@@ -2323,6 +2376,39 @@
         };
 
         renderFeedback();
+    })();
+    </script>
+
+
+    <script>
+    (function () {
+        const WA = '201065852975';
+        const norm = t => String(t || '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+        function findHajjCat() {
+            try {
+                return categoriesList.find(c => { const n = norm(c.name); return n.includes('اسدال') && (n.includes('حج') || n.includes('عمر')); })
+                    || categoriesList.find(c => { const n = norm(c.name); return n.includes('حج') || n.includes('عمر'); });
+            } catch (e) { return null; }
+        }
+        function refreshHajj() {
+            const cat = findHajjCat();
+            const el = document.getElementById('hajj-count');
+            if (cat && el) {
+                const n = productsList.filter(p => p.category_id === cat.id).length;
+                el.textContent = n ? n + ' موديل متاح' : '';
+            } else if (el) el.textContent = '';
+        }
+        document.getElementById('hajj-shop-btn').addEventListener('click', () => {
+            const cat = findHajjCat();
+            if (cat) selectCategory(cat.id);
+            else { scrollToId('products-section'); toast('التشكيلة هتتوفر قريباً، تواصلي معنا على الواتساب', 'info'); }
+        });
+        document.getElementById('hajj-wa-btn').href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent('السلام عليكم، عايزة أستفسر عن إسدالات الحج والعمرة المتاحة');
+        const _fc2 = window.fetchCategories;
+        window.fetchCategories = async function () { await _fc2.apply(this, arguments); refreshHajj(); };
+        const _fp2 = window.fetchProducts;
+        window.fetchProducts = async function () { await _fp2.apply(this, arguments); refreshHajj(); };
+        refreshHajj();
     })();
     </script>
 
