@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>دلع الهوانم V3 - أزياء نسائية راقية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -116,7 +116,10 @@
 
 
         /* ===== V3 Premium UI refinement ===== */
-        html, body { overflow-x: hidden; }
+        html { overflow-x: hidden; }
+        @supports (overflow: clip) { html { overflow-x: clip; } body { overflow-x: clip; } }
+        body { max-width: 100%; }
+        img, video { max-width: 100%; }
         body { font-size: 14px; letter-spacing: 0; }
         header { direction: rtl; }
         #cats-menu-wrap { direction: rtl; position: relative; z-index: 70; }
@@ -170,11 +173,22 @@
             .product-card { padding: 12px !important; }
         }
 
+
+        /* ===== إصلاحات الموبايل ===== */
+        #cart-drawer-panel, #wish-drawer-panel { left: auto; right: 0; height: 100%; max-height: 100dvh; -webkit-overflow-scrolling: touch; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+        nav.fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom); }
+        @media (max-width: 767px) { body { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; } }
+        @media (max-width: 639px) {
+            #cats-menu { position: fixed !important; top: var(--cm-top, 110px) !important; right: 10px !important; left: 10px !important; width: auto !important; max-width: none !important; z-index: 100; }
+            #cats-menu-list { max-height: min(55vh, 380px); -webkit-overflow-scrolling: touch; }
+            #hero-section { min-height: 360px !important; }
+            #hero-content h1 { font-size: 1.6rem; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-16 md:pb-0">
     <!-- 1. شريط معلومات علوي -->
-    <div class="text-white py-2 px-4 text-center text-[11px] md:text-xs sticky top-0 z-50" style="background: var(--ink);">
+    <div class="text-white py-2 px-4 text-center text-[11px] md:text-xs relative z-50" style="background: var(--ink);">
         <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-1">
             <span class="flex items-center gap-1.5">
                 <i class="fa-solid fa-gift" style="color: var(--gold);"></i>
@@ -193,7 +207,7 @@
     </div>
 
     <!-- 2. الهيدر -->
-    <header class="border-b sticky top-[30px] z-40" style="background: var(--surface); border-color: var(--line);">
+    <header class="border-b sticky top-0 z-[45]" style="background: var(--surface); border-color: var(--line);">
         <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2 flex-wrap lg:flex-nowrap">
             <a href="#" onclick="scrollToId('hero-section'); return false;" class="flex flex-col justify-center py-1">
                 <span class="font-display text-xl md:text-2xl font-bold block leading-tight" style="color: var(--ink);">دلع الهوانم</span>
@@ -344,7 +358,7 @@
     </footer>
 
     <!-- 8. درج سلة التسوق -->
-    <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
+    <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-[90] hidden opacity-0" onclick="if(event.target===this) toggleCartDrawer(false)">
         <div id="cart-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
             <div class="flex justify-between items-center pb-4 mb-4" style="border-bottom: 1px solid var(--line);">
                 <h3 class="font-display text-lg font-semibold flex items-center gap-2" style="color: var(--ink);"><i class="fa-solid fa-bag-shopping" style="color: var(--rosewood);"></i> سلة المشتريات</h3>
@@ -385,7 +399,7 @@
     </div>
 
     <!-- 9. درج المفضلة (Wishlist) -->
-    <div id="wish-drawer" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="if(event.target===this) toggleWishlistDrawer(false)">
+    <div id="wish-drawer" class="fixed inset-0 bg-black/50 z-[90] hidden opacity-0" onclick="if(event.target===this) toggleWishlistDrawer(false)">
         <div id="wish-drawer-panel" class="fixed inset-y-0 right-0 w-full max-w-md shadow-2xl flex flex-col p-6 overflow-y-auto" style="background: var(--paper);">
             <div class="flex justify-between items-center pb-4 mb-4" style="border-bottom: 1px solid var(--line);">
                 <h3 class="font-display text-lg font-semibold flex items-center gap-2" style="color: var(--ink);"><i class="fa-solid fa-heart" style="color: var(--rosewood);"></i> قائمة المفضلة</h3>
@@ -931,6 +945,7 @@
 
             const modal = document.getElementById('qv-modal');
             modal.classList.remove('hidden');
+            void modal.offsetWidth;
             requestAnimationFrame(() => modal.classList.add('opacity-100'));
             document.body.style.overflow = 'hidden';
         }
@@ -1058,6 +1073,7 @@
             const drawer = document.getElementById('wish-drawer');
             if (open) {
                 drawer.classList.remove('hidden');
+                void drawer.offsetWidth;
                 requestAnimationFrame(() => drawer.classList.add('opacity-100', 'is-open'));
                 document.body.style.overflow = 'hidden';
             } else {
@@ -1149,6 +1165,7 @@
             const drawer = document.getElementById('cart-drawer');
             if (open) {
                 drawer.classList.remove('hidden');
+                void drawer.offsetWidth;
                 requestAnimationFrame(() => {
                     drawer.classList.add('opacity-100', 'is-open');
                 });
@@ -1236,6 +1253,7 @@
 
             const modal = document.getElementById('admin-modal');
             modal.classList.remove('hidden');
+            void modal.offsetWidth;
             requestAnimationFrame(() => modal.classList.add('opacity-100'));
             renderAdminProducts();
             renderAdminCategories();
@@ -1992,7 +2010,18 @@
             </div>`);
         window.toggleCatsMenu = function (e) {
             if (e) e.stopPropagation();
-            $('cats-menu').classList.toggle('hidden');
+            const menu = $('cats-menu');
+            const willOpen = menu.classList.contains('hidden');
+            if (willOpen) {
+                const r = $('cats-menu-btn').getBoundingClientRect();
+                menu.style.setProperty('--cm-top', (r.bottom + 8) + 'px');
+                const list = $('cats-menu-list');
+                if (list && !list.children.length) {
+                    try { buildCatsMenu(); } catch (err) {}
+                    if (!list.children.length) list.innerHTML = '<p class="text-xs text-center py-6" style="color: var(--ink-muted);">جاري تحميل الأقسام...</p>';
+                }
+            }
+            menu.classList.toggle('hidden');
         };
         $('cats-menu-btn').addEventListener('click', toggleCatsMenu);
         document.addEventListener('click', e => {
