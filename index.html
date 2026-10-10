@@ -212,6 +212,30 @@
         .hajj-cta-gold { background: linear-gradient(90deg, #E3D5BC, #C7A367); color: #2A211D; }
         .hajj-cta-line { border: 1px solid rgba(227,213,188,.6); color: #FAF5EE; background: rgba(255,255,255,.06); }
         .hajj-count { font-size: 11px; color: var(--gold-soft); font-weight: 700; }
+
+        /* ===== إصلاح نافذة المنتج (زر الإضافة للسلة) ===== */
+        #qv-modal { align-items: center; padding: 12px; }
+        #qv-modal > div { max-height: 92dvh; max-height: min(92dvh, 760px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        #qv-modal > div > div:first-child { aspect-ratio: 1 / 1; max-height: 46vh; }
+        @media (min-width: 768px) { #qv-modal > div > div:first-child { aspect-ratio: auto; max-height: none; min-height: 460px; } }
+        #qv-modal > div > div:last-child { overflow: visible; }
+        #qv-modal .mt-auto { position: sticky; bottom: 0; z-index: 5; margin-left: -20px; margin-right: -20px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 16px -12px rgba(42,33,29,.25); }
+
+        /* ===== إصلاح الشريط السفلي للموبايل ليصبح قابلاً للسحب ===== */
+        nav.md\:hidden .grid.grid-cols-7 {
+            display: flex !important;
+            overflow-x: auto !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        nav.md\:hidden .grid.grid-cols-7::-webkit-scrollbar {
+            display: none !important;
+        }
+        nav.md\:hidden .grid.grid-cols-7 > * {
+            flex: 0 0 auto !important;
+            min-width: 72px !important;
+            padding: 0 4px !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-16 md:pb-0">
@@ -615,7 +639,8 @@
         // ==================== Supabase ====================
         const SUPABASE_URL = "https://niuxwiuaiqahnkptlysm.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pdXh3aXVhaXFhaG5rcHRseXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTcwOTQsImV4cCI6MjEwNTIzMzA5NH0.efj-duLJhE1xcvaVeFjzcGYGPAEgQJ87nrPp9V10__w";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const _supabase = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        if (!_supabase) console.error('تعذر تحميل مكتبة Supabase');
         const ADMIN_PASSWORD = "123456";
         let isAdminLoggedIn = false;
 
@@ -644,9 +669,10 @@
         ];
 
         function categoryImage(name) {
-            const n = String(name || '');
+            const fix = t => String(t || '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه');
+            const n = fix(name);
             for (const rule of CATEGORY_IMAGE_RULES) {
-                if (rule.keys.some(k => n.includes(k))) return rule.img;
+                if (rule.keys.some(k => n.includes(fix(k)))) return rule.img;
             }
             return IMGS.fallback;
         }
@@ -666,7 +692,8 @@
         let categoriesList = [];
         let productsList = [];
         let cart = [];
-        let wishlist = JSON.parse(localStorage.getItem('dh_wishlist_v3') || '[]');
+        let wishlist = (() => { try { const v = JSON.parse(localStorage.getItem('dh_wishlist_v3') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } })();
+        function saveWishlist() { try { localStorage.setItem('dh_wishlist_v3', JSON.stringify(wishlist)); } catch (e) {} }
         let activeCategoryId = 'all';
         let categoriesTableMissing = false;
 
@@ -1060,7 +1087,7 @@
                 wishlist.push({ id: p.id, title: p.title, price: p.price, image: productImage(p) });
                 toast('أُضيف "' + p.title + '" للمفضلة');
             }
-            localStorage.setItem('dh_wishlist_v3', JSON.stringify(wishlist));
+            saveWishlist();
             updateWishlistUI();
             renderProducts();
             if (ev && ev.currentTarget) {
@@ -1071,7 +1098,7 @@
 
         function removeFromWishlist(productId) {
             wishlist = wishlist.filter(w => w.id !== productId);
-            localStorage.setItem('dh_wishlist_v3', JSON.stringify(wishlist));
+            saveWishlist();
             updateWishlistUI();
             renderProducts();
             toast('تمت الإزالة من المفضلة', 'info');
@@ -2412,5 +2439,15 @@
     })();
     </script>
 
+
+    <script>
+    (function () {
+        const PH = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect width="400" height="500" fill="#F1E7D9"/><text x="200" y="260" font-size="26" text-anchor="middle" fill="#AD8A55" font-family="sans-serif">دلع الهوانم</text></svg>');
+        document.addEventListener('error', function (e) {
+            const t = e.target;
+            if (t && t.tagName === 'IMG' && t.src !== PH && !t.dataset.failed) { t.dataset.failed = '1'; t.src = PH; }
+        }, true);
+    })();
+    </script>
 </body>
 </html>
