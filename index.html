@@ -1004,7 +1004,6 @@
                     <div class="absolute inset-0" style="background: linear-gradient(to top, rgba(42,33,29,.78) 0%, rgba(42,33,29,0) 55%);"></div>
                     <div class="absolute bottom-0 right-0 p-3 w-full">
                         <h3 class="font-display font-bold text-white text-sm md:text-base">${escapeHtml(c.name)}</h3>
-                        <p class="text-[10px] text-white/85">${count} منتج</p>
                     </div>
                 </button>`;
             }).join('');
@@ -2212,7 +2211,6 @@
                 <button class="cat-menu-item w-full flex items-center gap-3 p-2 rounded-xl text-right transition" data-cat="${it.id}">
                     <img src="${it.img}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0" style="border: 1px solid var(--line);">
                     <span class="flex-1 text-xs font-bold" style="color: var(--ink);">${escapeHtml(it.name)}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0" style="background: var(--sand); color: var(--ink-muted);">${it.count} منتج</span>
                 </button>`).join('');
             list.querySelectorAll('.cat-menu-item').forEach(b => b.addEventListener('click', () => {
                 selectCategory(b.dataset.cat === 'all' ? 'all' : Number(b.dataset.cat));
@@ -2516,7 +2514,7 @@
             const el = document.getElementById('hajj-count');
             if (cat && el) {
                 const n = productsList.filter(p => p.category_id === cat.id).length;
-                el.textContent = n ? n + ' موديل متاح' : '';
+                el.textContent = '';
             } else if (el) el.textContent = '';
         }
         document.getElementById('hajj-shop-btn').addEventListener('click', () => {
@@ -2589,7 +2587,7 @@
             if (p && opts && opts.size) {
                 const lim = stockOf(p, opts.size);
                 if (lim <= 0) { toast('هذا المقاس غير متاح حالياً', 'error'); return; }
-                if (cartQty(id, opts.size) + (opts.qty || 1) > lim) { toast('المتاح من هذا المقاس ' + lim + ' قطعة فقط', 'error'); return; }
+                if (cartQty(id, opts.size) + (opts.qty || 1) > lim) { toast('عذراً، لا يتوفر أكثر من هذه الكمية من هذا المقاس', 'error'); return; }
             }
             return _add(id, ev, opts);
         };
@@ -2598,7 +2596,7 @@
             const it = cart[i];
             if (it && d > 0 && it.size) {
                 const p = productsList.find(x => x.id === it.id);
-                if (p && cartQty(it.id, it.size) + d > stockOf(p, it.size)) { toast('المتاح من هذا المقاس ' + stockOf(p, it.size) + ' قطعة فقط', 'error'); return; }
+                if (p && cartQty(it.id, it.size) + d > stockOf(p, it.size)) { toast('عذراً، لا يتوفر أكثر من هذه الكمية من هذا المقاس', 'error'); return; }
             }
             _uq(i, d);
         };
@@ -2731,7 +2729,7 @@
                             (av ? ' onclick="ppPick(\'size\',this.dataset.v)"' : ' disabled aria-disabled="true" title="غير متاح"') + '>' + escapeHtml(sz) + '</button>';
                     }).join('') + '</div>';
                 const lim = ppSize ? stockOf(p, ppSize) : Infinity;
-                h += '<div class="pp-low">' + (isFinite(lim) && lim > 0 && lim <= 3 ? 'متبقي ' + lim + (lim === 1 ? ' قطعة واحدة فقط' : ' قطع فقط') : '') + '</div>';
+                
             }
             $('pp-opts').innerHTML = h;
             const lim = ppSize ? stockOf(p, ppSize) : Infinity;
@@ -2752,7 +2750,7 @@
             const lim = ppSize ? stockOf(p, ppSize) : Infinity;
             const n = ppQty + d;
             if (n < 1) return;
-            if (n > lim) { toast('المتاح من هذا المقاس ' + lim + ' قطعة فقط', 'error'); return; }
+            if (n > lim) { toast('عذراً، لا يتوفر أكثر من هذه الكمية من هذا المقاس', 'error'); return; }
             ppQty = n; ppOpts();
         };
         window.ppAdd = function (buyNow) {
