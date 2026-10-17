@@ -1138,7 +1138,7 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
             try {
                 const { data, error } = await _supabase.from('products').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-                productsList = data || [];
+                productsList = window.localizeProducts ? window.localizeProducts(data || []) : (data || []);
                 document.getElementById('loading-skeleton').classList.add('hidden');
                 document.getElementById('products-grid').classList.remove('hidden');
                 renderProducts();
@@ -1962,7 +1962,9 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
                 desc: $('p-desc').value.trim(), status: $('p-status').value,
                 image: urls[0], images: urls,
                 sizes: parseList($('p-sizes').value), colors: parseList($('p-colors').value),
-                stock: window.collectStock()
+                stock: window.collectStock(),
+                title_en: await window.enValue('p-title-en', 'p-title', true),
+                desc_en: await window.enValue('p-desc-en', 'p-desc', false)
             };
             const { error } = await window.saveProductRow(payload, editId);
             if (error) throw error;
@@ -2187,7 +2189,7 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
         if (searchQuery) {
             list = productsList.filter(p => {
                 const cat = categoriesList.find(c => c.id === p.category_id);
-                const hay = [p.title, p.desc, cat && cat.name, arr(p.sizes).join(' '), arr(p.colors).join(' ')].join(' ').toLowerCase();
+                const hay = [p.title, p.title_ar, p.desc, p.desc_ar, cat && cat.name, arr(p.sizes).join(' '), arr(p.colors).join(' ')].join(' ').toLowerCase();
                 return hay.includes(searchQuery);
             });
             heading.textContent = `Search results (${list.length})`;
@@ -3021,5 +3023,231 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
         route();
     })();
     </script>
+
+<script>
+/* ===== ترجمة أسماء ووصف المنتجات / Product name & description translation ===== */
+(function () {
+    const $ = id => document.getElementById(id);
+    const IS_EN = document.documentElement.lang === 'en';
+    const T = {
+        formTitle: 'English version (optional)', formHint: 'If left empty it will be translated automatically on save',
+        trBtn: 'Translate now', titlePh: 'Product name in English', descPh: 'Product description in English',
+        panelTitle: 'Translate products to English', panelHint: 'Translates every product that has no English name and saves it, only once.',
+        allBtn: 'Auto-translate all products',
+        progress: (a, b) => 'Translating... ' + a + ' / ' + b,
+        nothing: 'All products are already translated',
+        finished: (ok, f) => 'Translated ' + ok + ' products' + (f ? ' (' + f + ' failed)' : ''),
+        needSql: 'Add the title_en and desc_en columns in Supabase first (SQL line)',
+        missingCols: 'Product saved, but some fields (stock/English) were not saved: run the SQL in Supabase first',
+        translating: 'Translating...', failed: 'Automatic translation failed, please type it manually'
+    };
+    const hasAr = s => /[\u0600-\u06FF]/.test(s || '');
+
+    /* كاش محلي */
+    const CK = 'dh_tr_v1'; let cache = {};
+    try { cache = JSON.parse(localStorage.getItem(CK) || '{}') || {}; } catch (e) {}
+    let saveT = null;
+    const saveCache = () => { clearTimeout(saveT); saveT = setTimeout(() => { try {
+        const k = Object.keys(cache); if (k.length > 600) k.slice(0, k.length - 600).forEach(x => delete cache[x]);
+        localStorage.setItem(CK, JSON.stringify(cache)); } catch (e) {} }, 400); };
+
+    /* قاموس مصطلحات الأزياء (قبل الترجمة) */
+    const GLOSS = [
+        [/إسدالات|اسدالات/g, ' Isdals '], [/إسدال|اسدال/g, ' Isdal '],
+        [/ملايات/g, ' Melayas '], [/ملاية|ملايه/g, ' Melaya '],
+        [/جلابيات/g, ' Galabiyas '], [/جلابية|جلابيه/g, ' Galabiya '],
+        [/عبايات/g, ' Abayas '], [/عباية|عباءة|عبايه/g, ' Abaya '],
+        [/طرحة|طرحه/g, ' Scarf '], [/طرح/g, ' Scarves '],
+        [/بيجامة|بيجاما/g, ' Pajama '], [/ترنج/g, ' Tracksuit ']
+    ];
+    const gloss = s => GLOSS.reduce((a, [re, en]) => a.replace(re, en), s).replace(/[ \t]+/g, ' ').trim();
+
+    async function viaGoogle(q) {
+        const c = new AbortController(), t = setTimeout(() => c.abort(), 7000);
+        try {
+            const r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=' + encodeURIComponent(q), { signal: c.signal });
+            if (!r.ok) return null;
+            const j = await r.json();
+            const out = (j[0] || []).map(s => s[0]).join('').trim();
+            return out || null;
+        } catch (e) { return null; } finally { clearTimeout(t); }
+    }
+    async function viaMyMemory(q) {
+        const c = new AbortController(), t = setTimeout(() => c.abort(), 8000);
+        try {
+            const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(q) + '&langpair=ar|en', { signal: c.signal });
+            if (!r.ok) return null;
+            const j = await r.json();
+            const out = j && j.responseData && String(j.responseData.translatedText || '').trim();
+            if (!out || /MYMEMORY WARNING|INVALID|QUERY LENGTH/i.test(out)) return null;
+            return out;
+        } catch (e) { return null; } finally { clearTimeout(t); }
+    }
+    function chunks(text) {
+        const out = [];
+        text.split('\n').forEach(line => {
+            line = line.trim(); if (!line) return;
+            if (line.length <= 380) { out.push(line); return; }
+            let cur = '';
+            line.split(/(?<=[.!؟?،,])\s+/).forEach(s => {
+                if ((cur + ' ' + s).length > 380 && cur) { out.push(cur); cur = s; } else cur = (cur ? cur + ' ' : '') + s;
+            });
+            if (cur) out.push(cur);
+        });
+        return out;
+    }
+    const titleCase = s => s.replace(/(^|[\s(\-/])([a-z])/g, (m, a, b) => a + b.toUpperCase());
+
+    window.trAR2EN = async function (text, isTitle) {
+        text = String(text || '').trim();
+        if (!text || !hasAr(text)) return text;
+        const key = (isTitle ? 't|' : 'd|') + text;
+        if (cache[key]) return cache[key];
+        const parts = chunks(gloss(text)), res = [];
+        for (const p of parts) {
+            const r = (await viaGoogle(p)) || (await viaMyMemory(p));
+            if (!r) return '';
+            res.push(r);
+        }
+        let out = res.join(isTitle ? ' ' : '\n');
+        if (isTitle) out = titleCase(out);
+        cache[key] = out; saveCache();
+        return out;
+    };
+    window.enValue = async function (enId, arId, isTitle) {
+        const typed = $(enId).value.trim(); if (typed) return typed;
+        const src = $(arId).value.trim(); if (!src) return null;
+        try { return (await trAR2EN(src, isTitle)) || null; } catch (e) { return null; }
+    };
+
+    /* ===== حفظ المنتج: يتجاهل الأعمدة الناقصة بدل ما يفشل ===== */
+    window.saveProductRow = async function (payload, editId) {
+        const run = pl => editId ? _supabase.from('products').update(pl).eq('id', editId) : _supabase.from('products').insert([pl]);
+        const pl = Object.assign({}, payload), dropped = [];
+        let res = await run(pl);
+        for (let i = 0; i < 3 && res.error; i++) {
+            const m = res.error.message || '';
+            const col = ['stock', 'title_en', 'desc_en'].find(c => Object.prototype.hasOwnProperty.call(pl, c) && new RegExp(c, 'i').test(m));
+            if (!col) break;
+            delete pl[col]; dropped.push(col); res = await run(pl);
+        }
+        if (!res.error && dropped.length) toast(T.missingCols, 'error');
+        return res;
+    };
+
+    /* ===== لوحة الإدارة ===== */
+    $('p-desc').insertAdjacentHTML('afterend',
+        '<div class="rounded-lg p-3 space-y-2" style="border:1px dashed var(--line);background:#fff">' +
+        '<div class="flex flex-wrap justify-between items-center gap-2">' +
+        '<div><p class="text-[11px] font-bold" style="color:var(--rosewood-deep)">' + T.formTitle + '</p><p class="text-[10px]" style="color:var(--ink-muted)">' + T.formHint + '</p></div>' +
+        '<button type="button" id="tr-one-btn" class="btn-outline px-3 py-1.5 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-language"></i> ' + T.trBtn + '</button></div>' +
+        '<input type="text" id="p-title-en" dir="ltr" placeholder="' + T.titlePh + '" class="w-full rounded-lg text-xs p-2" style="border:1px solid var(--line)">' +
+        '<textarea id="p-desc-en" dir="ltr" rows="2" placeholder="' + T.descPh + '" class="w-full rounded-lg text-xs p-2" style="border:1px solid var(--line)"></textarea></div>');
+    $('tr-one-btn').addEventListener('click', async () => {
+        const btn = $('tr-one-btn'), old = btn.innerHTML;
+        const t = $('p-title').value.trim(), d = $('p-desc').value.trim();
+        if (!t && !d) return;
+        btn.disabled = true; btn.textContent = T.translating;
+        try {
+            const [te, de] = await Promise.all([trAR2EN(t, true), d ? trAR2EN(d) : Promise.resolve('')]);
+            if (te) $('p-title-en').value = te;
+            if (de) $('p-desc-en').value = de;
+            if (!te && t) toast(T.failed, 'error');
+        } finally { btn.disabled = false; btn.innerHTML = old; }
+    });
+    $('admin-products-list').insertAdjacentHTML('beforebegin',
+        '<div class="rounded-xl p-3 flex flex-wrap items-center justify-between gap-2" style="background:var(--paper);border:1px solid var(--line)">' +
+        '<div><p class="text-xs font-bold" style="color:var(--rosewood-deep)"><i class="fa-solid fa-language"></i> ' + T.panelTitle + '</p>' +
+        '<p class="text-[10px]" style="color:var(--ink-muted)">' + T.panelHint + '</p>' +
+        '<p id="tr-progress" class="text-[11px] font-bold mt-1" style="color:var(--rosewood)"></p></div>' +
+        '<button type="button" id="tr-all-btn" class="btn-primary px-4 py-2 rounded-lg text-xs font-bold">' + T.allBtn + '</button></div>');
+    $('tr-all-btn').addEventListener('click', () => translateAllProducts());
+
+    window.translateAllProducts = async function () {
+        const btn = $('tr-all-btn'), prog = $('tr-progress');
+        const todo = productsList.filter(p => {
+            const t = p.title_ar !== undefined ? p.title_ar : p.title, d = p.desc_ar !== undefined ? p.desc_ar : p.desc;
+            return (!(p.title_en || '').trim() && hasAr(t)) || (!(p.desc_en || '').trim() && hasAr(d));
+        });
+        if (!todo.length) { toast(T.nothing); return; }
+        btn.disabled = true; let done = 0, fail = 0;
+        for (const p of todo) {
+            prog.textContent = T.progress(done, todo.length);
+            const t = (p.title_ar !== undefined ? p.title_ar : p.title) || '', d = (p.desc_ar !== undefined ? p.desc_ar : p.desc) || '';
+            const upd = {};
+            if (!(p.title_en || '').trim() && hasAr(t)) { const x = await trAR2EN(t, true); if (x) upd.title_en = x; }
+            if (!(p.desc_en || '').trim() && hasAr(d)) { const x = await trAR2EN(d); if (x) upd.desc_en = x; }
+            if (Object.keys(upd).length) {
+                const { error } = await _supabase.from('products').update(upd).eq('id', p.id);
+                if (error) {
+                    if (/title_en|desc_en/i.test(error.message || '')) { toast(T.needSql, 'error'); btn.disabled = false; prog.textContent = ''; return; }
+                    fail++;
+                }
+            } else fail++;
+            done++;
+            await new Promise(r => setTimeout(r, 350));
+        }
+        prog.textContent = ''; btn.disabled = false;
+        toast(T.finished(done - fail, fail));
+        await fetchProducts();
+    };
+
+    const _e = window.editProduct;
+    window.editProduct = function (id) {
+        _e(id);
+        const p = productsList.find(x => x.id === id); if (!p) return;
+        if (p.title_ar !== undefined) $('p-title').value = p.title_ar;
+        if (p.desc_ar !== undefined) $('p-desc').value = p.desc_ar || '';
+        $('p-title-en').value = p.title_en || ''; $('p-desc-en').value = p.desc_en || '';
+    };
+    const _c = window.cancelEditProduct;
+    window.cancelEditProduct = function () { _c(); $('p-title-en').value = ''; $('p-desc-en').value = ''; };
+
+    /* ===== النسخة الإنجليزية: عرض الاسم/الوصف بالإنجليزي + ترجمة فورية للناقص ===== */
+    if (IS_EN) {
+        let rt = null, running = false;
+        const refresh = () => { clearTimeout(rt); rt = setTimeout(() => { try { renderProducts(); } catch (e) {} }, 300); };
+        window.localizeProducts = function (list) {
+            list.forEach(p => {
+                p.title_ar = p.title; p.desc_ar = p.desc;
+                p.title = (p.title_en || '').trim() || cache['t|' + p.title_ar] || p.title_ar;
+                p.desc = (p.desc_en || '').trim() || cache['d|' + p.desc_ar] || p.desc_ar;
+            });
+            setTimeout(liveTitles, 0);
+            return list;
+        };
+        async function liveTitles() {
+            if (running) return; running = true;
+            try {
+                const q = productsList.filter(p => hasAr(p.title) && !(p.title_en || '').trim()).slice(0, 80);
+                let n = 0;
+                const worker = async () => {
+                    while (q.length) {
+                        const p = q.shift();
+                        const t = await trAR2EN(p.title_ar, true);
+                        if (t) { p.title = t; n++; if (n % 4 === 0) refresh(); }
+                    }
+                };
+                await Promise.all([worker(), worker(), worker()]);
+                refresh();
+            } finally { running = false; }
+        }
+        const _oq = window.openQuickView;
+        window.openQuickView = function (id) {
+            _oq(id);
+            const p = productsList.find(x => x.id === id);
+            if (p && hasAr(p.desc) && !(p.desc_en || '').trim()) {
+                trAR2EN(p.desc_ar).then(t => {
+                    if (!t) return;
+                    p.desc = t;
+                    const el = document.querySelector('#pp-body .pp-acc-body');
+                    if (el && location.hash === '#/p/' + id) el.innerHTML = escapeHtml(t).replace(/\n/g, '<br>');
+                });
+            }
+        };
+        if (productsList.length) { window.localizeProducts(productsList); }
+    }
+})();
+</script>
 </body>
 </html>
