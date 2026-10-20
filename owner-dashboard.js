@@ -317,6 +317,22 @@ const openOwner = () => { if (root.style.display !== 'block') showLogin(); };
 if (location.hash === '#owner') openOwner();
 window.addEventListener('hashchange', () => { if (location.hash === '#owner') openOwner(); });
 document.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'o') { e.preventDefault(); openOwner(); } });
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#owner-entry')) { e.preventDefault(); openOwner(); } });
+
+/* ---------- ضغطة مطولة على اسم المحل (للموبايل والكمبيوتر) ---------- */
+(function () {
+    let t = null;
+    const arm = () => { t = setTimeout(() => { t = null; openOwner(); }, 700); };
+    const dis = () => { if (t) { clearTimeout(t); t = null; } };
+    const logo = document.getElementById('store-logo');
+    if (!logo) return;
+    logo.addEventListener('touchstart', arm, { passive: true });
+    logo.addEventListener('touchend', dis); logo.addEventListener('touchmove', dis); logo.addEventListener('touchcancel', dis);
+    logo.addEventListener('mousedown', arm);
+    logo.addEventListener('mouseup', dis); logo.addEventListener('mouseleave', dis);
+    logo.addEventListener('contextmenu', e => e.preventDefault());
+})();
+
 
 mountCoupon(); loadSettings();
 })();
