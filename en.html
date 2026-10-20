@@ -2846,6 +2846,46 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
         const getP = () => productsList.find(x => x.id === ppId);
         const imgsOf = p => { const a = arr(p.images).filter(Boolean); return a.length ? a : [productImage(p)]; };
 
+
+        /* ---------- اقتراحات منتجات أخرى ---------- */
+        if (!document.getElementById('pp-related-css')) {
+            const st = document.createElement('style'); st.id = 'pp-related-css';
+            st.textContent =
+              '#pp-related{max-width:78rem;margin:0 auto;padding:8px 16px 56px}' +
+              '.ppr-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}' +
+              '.ppr-head h2{font-family:"El Messiri","Cairo",sans-serif;font-size:clamp(18px,2.4vw,24px);font-weight:700;white-space:nowrap}' +
+              '.ppr-head i{flex:1;height:1px;background:var(--gold);opacity:.55}' +
+              '.ppr-row{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}' +
+              '.ppr-row::-webkit-scrollbar{display:none}' +
+              '.ppr-card{flex:0 0 164px;scroll-snap-align:start;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}' +
+              '.ppr-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px -14px rgba(42,33,29,.35)}' +
+              '.ppr-img{aspect-ratio:4/5;background:var(--sand);overflow:hidden}' +
+              '.ppr-img img{width:100%;height:100%;object-fit:cover;display:block}' +
+              '.ppr-info{padding:10px 12px 12px}' +
+              '.ppr-name{font-size:12.5px;font-weight:700;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}' +
+              '.ppr-price{margin-top:4px;font-size:13px;font-weight:800;color:var(--rosewood-deep)}' +
+              '.ppr-price s{font-size:11px;font-weight:600;color:var(--ink-muted);margin-inline-start:6px}' +
+              '@media(min-width:768px){.ppr-card{flex-basis:210px}}';
+            document.head.appendChild(st);
+        }
+        function ppRelated(p) {
+            const box = $('pp-related'); if (!box || !p) return;
+            const near = (a, b) => Math.abs((a.price || 0) - p.price) - Math.abs((b.price || 0) - p.price);
+            const others = productsList.filter(x => x.id !== p.id && !soldOutP(x));
+            const same = others.filter(x => x.category_id === p.category_id).sort(near);
+            const rest = others.filter(x => x.category_id !== p.category_id).sort(near);
+            const list = same.concat(rest).slice(0, 10);
+            if (!list.length) { box.innerHTML = ''; return; }
+            box.innerHTML =
+                '<div class="ppr-head"><h2>You may also like</h2><i></i></div>' +
+                '<div class="ppr-row">' + list.map(x =>
+                    '<button type="button" class="ppr-card" onclick="openQuickView(' + x.id + ')">' +
+                      '<div class="ppr-img"><img src="' + escapeHtml(imgsOf(x)[0]) + '" alt="' + escapeHtml(x.title) + '" loading="lazy"></div>' +
+                      '<div class="ppr-info"><div class="ppr-name">' + escapeHtml(x.title) + '</div>' +
+                      '<div class="ppr-price">' + x.price + ' EGP' + (x.old_price && x.old_price > x.price ? '<s>' + x.old_price + '</s>' : '') + '</div></div>' +
+                    '</button>').join('') + '</div>';
+        }
+
         function ppSkeleton(p) {
             const imgs = imgsOf(p);
             const cat = categoriesList.find(c => c.id === p.category_id);
@@ -2870,8 +2910,10 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
                     '<button type="button" class="pp-link" onclick="openPolicy(\'return\')">Return Policy</button></div></details>' +
                 '</div>' +
               '</div>' +
-            '</div>';
+            '</div>' +
+            '<div id="pp-related"></div>';
             ppGallery();
+            ppRelated(p);
         }
         function ppGallery() {
             const p = getP(); if (!p) return;
