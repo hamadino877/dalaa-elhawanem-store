@@ -128,14 +128,17 @@ function showLogin() {
         <button data-a="close" class="ow-btn o" style="width:100%;margin-top:8px">إلغاء</button></div></div>`;
     $('ow-pw').focus(); $('ow-pw').onkeydown = e => { if (e.key === 'Enter') doLogin(); };
 }
+/* الرقم السري متخزن في الكود — غيّريه من هنا لو حابب */
+const OWNER_PIN = '101010';
+let ownerAuthed = false;
 async function doLogin() {
     const b = root.querySelector('[data-a="login"]'); b.disabled = true;
-    const { error } = await db().auth.signInWithPassword({ email: OWNER_EMAIL, password: $('ow-pw').value });
-    if (error) { $('ow-err').textContent = 'الرقم السري غير صحيح'; b.disabled = false; return; }
+    if ($('ow-pw').value !== OWNER_PIN) { $('ow-err').textContent = 'الرقم السري غير صحيح'; b.disabled = false; return; }
+    ownerAuthed = true;
     await loadAll(); render();
 }
 async function logout() {
-    try { await db().auth.signOut(); } catch (e) { }
+    ownerAuthed = false;
     root.style.display = 'none'; root.innerHTML = ''; document.body.style.overflow = '';
     if (location.hash === '#owner') history.replaceState(null, '', location.pathname + location.search);
 }
@@ -313,7 +316,7 @@ root.addEventListener('click', e => {
 });
 
 /* ---------- نقطة الدخول: #owner أو Ctrl+Shift+O ---------- */
-const openOwner = () => { if (root.style.display !== 'block') showLogin(); };
+const openOwner = () => { if (root.style.display !== 'block') ownerAuthed ? (loadAll().then(render)) : showLogin(); };
 if (location.hash === '#owner') openOwner();
 window.addEventListener('hashchange', () => { if (location.hash === '#owner') openOwner(); });
 document.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'o') { e.preventDefault(); openOwner(); } });
