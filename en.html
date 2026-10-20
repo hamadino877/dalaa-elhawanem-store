@@ -1517,7 +1517,7 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
             `).join('');
 
             let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) * item.qty), 0);
-            let discount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
+            let discount = window.calcTotals ? window.calcTotals(cart).disc : (totalQty > 1 ? (totalQty - 1) * 50 : 0);
             let finalTotal = Math.max(0, subtotal - discount);
 
             document.getElementById('cart-discount').textContent = discount + ' EGP';
@@ -1577,7 +1577,7 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
 
             let totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
             let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) * item.qty), 0);
-            let discount = totalQty > 1 ? (totalQty - 1) * 50 : 0;
+            let discount = window.calcTotals ? window.calcTotals(cart).disc : (totalQty > 1 ? (totalQty - 1) * 50 : 0);
             let finalTotal = Math.max(0, subtotal - discount);
 
             let msg = `🛍️ *New order from Dalaa El Hawanem Store*\n\n`;
@@ -2251,7 +2251,8 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
     const totals = () => {
         const q = cart.reduce((a, i) => a + i.qty, 0);
         const sub = cart.reduce((a, i) => a + parseFloat(i.price) * i.qty, 0);
-        const disc = q > 1 ? (q - 1) * 50 : 0;
+        const ct = window.calcTotals ? window.calcTotals(cart) : null;
+        const disc = ct ? ct.disc : (q > 1 ? (q - 1) * 50 : 0);
         return { sub, disc, total: Math.max(0, sub - disc) };
     };
     const depositOf = total => total > 0 ? Math.min(DEPOSIT_AMOUNT, total) : DEPOSIT_AMOUNT;
@@ -3274,5 +3275,6 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
     };
 })();
 </script>
+<script src="owner-dashboard.js"></script>
 </body>
 </html>
