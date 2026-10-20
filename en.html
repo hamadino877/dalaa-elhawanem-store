@@ -3021,5 +3021,216 @@ try{var _p=localStorage.getItem('dh_lang');if(_p==='ar'){location.replace('./'+l
         route();
     })();
     </script>
+
+<script>
+/* ===== التحكم في الهيرو وصور الأقسام من لوحة الإدارة / Hero & category images manager ===== */
+(function () {
+    const $ = id => document.getElementById(id);
+    const L = document.documentElement.lang === 'en' ? 'en' : 'ar', O = L === 'en' ? 'ar' : 'en';
+    const T = {
+        tab: 'Appearance & Images', intro: 'Change the hero banner images and text, and the category images from here. Edits are staged here, then press "Save changes" and they go live on both the Arabic and English versions. Recommended hero size: landscape, about 1920×800.',
+        heroTitle: 'Hero banner images & text', heroHint: 'Slides rotate automatically every 6 seconds. You can add up to 6 slides and reorder them.',
+        addSlide: 'Add slide', resetHero: 'Restore defaults', slide: 'Slide', changeImg: 'Change image', del: 'Delete', noSlides: 'No slides. The default slides will be used.',
+        catTitle: 'Category images', catHint: 'Shown on the category cards, the menu and the scrolling strip. If you do not choose one, a default image is used.',
+        defaultImg: 'Default', noCats: 'No categories.', maxSlides: 'Maximum 6 slides', save: 'Save changes', saving: 'Saving...', saved: 'Changes saved and live on the site',
+        failed: 'Could not save:', sqlMissing: '<b>You need to run this SQL once in Supabase</b> (open SQL Editor, paste the code and press Run), then press Save again:'
+    };
+    const KEY = 'appearance';
+    const rid = () => Math.random().toString(36).slice(2, 9);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const DEF = {"ar": [{"kicker": "تشكيلة 2026 وصلت حديثاً", "title": "أرقى الموديلات، بأعلى خامة، وأنسب سعر", "text": "فرعنا الرئيسي في المحلة الكبرى - شارع البهلوان. التوصيل لجميع المحافظات مع إمكانية المعاينة قبل الاستلام.", "cta": "تسوقي المجموعة كاملة"}, {"kicker": "قسم الإسدالات والعبايات", "title": "إسدالات فسكوز وساتان بلمسة فاخرة", "text": "قصّات مريحة وخامات مستوردة تليق بكِ في كل المناسبات.", "cta": "شوفي الإسدالات"}, {"kicker": "عرض خاص لفترة محدودة", "title": "خصم إضافي 50 جنيه مع كل قطعة ثانية", "text": "اختاري هديتك من أقسام الملابس البيتي والصلاحية والطرح.", "cta": "استفيدي بالعرض"}], "en": [{"kicker": "New 2026 Collection Just Arrived", "title": "Elegant Designs, Premium Fabrics, Best Prices", "text": "Visit our main store on Al Bahlawan St., El Mahalla El Kubra. Delivery to all governorates, with the option to inspect before you receive.", "cta": "Shop the Full Collection"}, {"kicker": "Isdals & Abayas", "title": "Viscose & Satin Isdals with a Luxe Touch", "text": "Comfortable cuts and imported fabrics for every occasion.", "cta": "Browse Isdals"}, {"kicker": "Limited-Time Offer", "title": "Extra EGP 50 off every second piece", "text": "Pick your treat from our homewear, prayer wear and scarves collections.", "cta": "Claim the Offer"}]};
+    const BASE = HERO_SLIDES.map(s => Object.assign({}, s));         /* الشرائح الافتراضية من الكود */
+    const _ci = window.categoryImage;                                 /* الدالة الأصلية لصور الأقسام */
+    let APP = { hero: null, categories: {} };
+    let draft = null, pending = {}, loaded = false;
+    const FIELDS = ['kicker', 'title', 'text', 'cta'];
+
+    /* ---------- تطبيق الإعدادات على الموقع ---------- */
+    function slideFor(s) {
+        const g = f => (s[f + '_' + L] || s[f + '_' + O] || '');
+        return { img: s.img || IMGS.heroBanner, kicker: g('kicker'), title: g('title'), text: g('text'), cta: g('cta') };
+    }
+    function applyHero() {
+        if (!(APP.hero && APP.hero.length)) {
+            HERO_SLIDES.splice(0, HERO_SLIDES.length, ...BASE);
+        } else {
+            HERO_SLIDES.splice(0, HERO_SLIDES.length, ...APP.hero.map(slideFor));
+        }
+        heroIndex = 0; renderHero(); restartHeroTimer();
+    }
+    window.categoryImage = function (name) {
+        const c = categoriesList.find(x => x.name === name || x.name_ar === name);
+        const u = c && APP.categories && APP.categories[c.id];
+        return u || _ci(name);
+    };
+    async function load() {
+        try {
+            const { data, error } = await _supabase.from('site_settings').select('value').eq('key', KEY).maybeSingle();
+            if (error || !data || !data.value) return null;
+            return data.value;
+        } catch (e) { return null; }
+    }
+    $('hero-slides').classList.add('pending');
+    const ready = (async () => {
+        const v = await Promise.race([load(), new Promise(r => setTimeout(() => r(null), 2500))]);
+        if (v) { APP = Object.assign({ hero: null, categories: {} }, v); if (APP.hero && APP.hero.length) applyHero(); }
+        loaded = true;
+        $('hero-slides').classList.remove('pending');
+    })();
+    const _fc = window.fetchCategories;
+    window.fetchCategories = async function () { await ready; return _fc.apply(this, arguments); };
+
+    /* ---------- واجهة لوحة الإدارة ---------- */
+    const style = document.createElement('style');
+    style.textContent = '#hero-slides { transition: opacity .4s ease; } #hero-slides.pending { opacity: 0; }';
+    document.head.appendChild(style);
+
+    const tabRow = $('admin-tab-btn-categories').parentElement;
+    tabRow.insertAdjacentHTML('beforeend',
+        '<button id="admin-tab-btn-appearance" onclick="switchAdminTab(\'appearance\')" class="px-4 py-2 text-xs font-bold" style="border-bottom: 2px solid transparent; color: var(--ink-muted);"><i class="fa-solid fa-image"></i> ' + T.tab + '</button>');
+    $('admin-tab-categories').insertAdjacentHTML('afterend',
+        '<div id="admin-tab-appearance" class="space-y-6 hidden">' +
+        '<div class="rounded-xl p-3 text-[11px] leading-relaxed" style="background:var(--paper);border:1px solid var(--line);color:var(--ink-muted)">' + T.intro + '</div>' +
+        '<div id="ap-missing" class="hidden rounded-xl p-3 text-[11px] leading-relaxed" style="background:#FFF6E5;border:1px solid #E8D3A3;color:#6B4E12"></div>' +
+        '<div><div class="flex flex-wrap items-center justify-between gap-2 mb-2"><h4 class="font-bold text-sm" style="color:var(--rosewood-deep)"><i class="fa-solid fa-panorama"></i> ' + T.heroTitle + '</h4>' +
+        '<div class="flex gap-2"><button type="button" id="ap-add" class="btn-outline px-3 py-1.5 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-plus"></i> ' + T.addSlide + '</button>' +
+        '<button type="button" id="ap-reset" class="btn-outline px-3 py-1.5 rounded-lg text-[11px] font-bold">' + T.resetHero + '</button></div></div>' +
+        '<p class="text-[10px] mb-2" style="color:var(--ink-muted)">' + T.heroHint + '</p><div id="ap-hero-list" class="space-y-3"></div></div>' +
+        '<div><h4 class="font-bold text-sm mb-1" style="color:var(--rosewood-deep)"><i class="fa-solid fa-table-cells-large"></i> ' + T.catTitle + '</h4>' +
+        '<p class="text-[10px] mb-2" style="color:var(--ink-muted)">' + T.catHint + '</p><div id="ap-cat-list" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div></div>' +
+        '<div class="sticky bottom-0 pt-2 pb-1" style="background:var(--surface)"><button type="button" id="ap-save" class="btn-primary w-full py-3 rounded-xl text-sm font-bold"><i class="fa-solid fa-floppy-disk"></i> ' + T.save + '</button></div></div>');
+
+    const panel = $('admin-tab-appearance');
+    function defaultDraft() {
+        return BASE.map((s, i) => {
+            const o = { _id: rid(), img: s.img };
+            FIELDS.forEach(f => { o[f + '_' + L] = s[f]; o[f + '_' + O] = (DEF[O][i] || {})[f] || ''; });
+            return o;
+        });
+    }
+    function startDraft() {
+        pending = {};
+        const hero = (APP.hero && APP.hero.length) ? APP.hero.map(s => Object.assign({ _id: rid() }, s)) : defaultDraft();
+        draft = { hero, categories: Object.assign({}, APP.categories || {}) };
+        render();
+    }
+    const prev = (key, fallback) => pending[key] ? pending[key].url : fallback;
+
+    function render() {
+        $('ap-hero-list').innerHTML = draft.hero.map((s, i) => {
+            const fl = (f, lang, ph) => '<input type="text" data-sid="' + s._id + '" data-f="' + f + '_' + lang + '" value="' + esc(s[f + '_' + lang] || '') + '" placeholder="' + ph + '" dir="' + (lang === 'en' ? 'ltr' : 'rtl') + '" class="w-full rounded-lg text-xs p-2" style="border:1px solid var(--line)">';
+            return '<div class="card rounded-xl p-3 space-y-3" data-sid="' + s._id + '">' +
+                '<div class="flex gap-3 items-start"><img src="' + esc(prev('h:' + s._id, s.img)) + '" class="w-32 h-20 object-cover rounded-lg flex-shrink-0" style="border:1px solid var(--line)" alt="">' +
+                '<div class="flex flex-wrap gap-2 items-center"><span class="text-[11px] font-bold" style="color:var(--ink-muted)">' + T.slide + ' ' + (i + 1) + '</span>' +
+                '<label class="btn-outline px-3 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer"><i class="fa-solid fa-camera"></i> ' + T.changeImg + '<input type="file" accept="image/*" class="hidden" data-act="hero-img" data-sid="' + s._id + '"></label>' +
+                '<button type="button" data-act="up" data-sid="' + s._id + '" class="px-2 py-1 rounded text-[11px] font-bold" style="border:1px solid var(--line)" ' + (i === 0 ? 'disabled' : '') + '>↑</button>' +
+                '<button type="button" data-act="down" data-sid="' + s._id + '" class="px-2 py-1 rounded text-[11px] font-bold" style="border:1px solid var(--line)" ' + (i === draft.hero.length - 1 ? 'disabled' : '') + '>↓</button>' +
+                '<button type="button" data-act="del" data-sid="' + s._id + '" class="px-2.5 py-1 rounded text-[11px] font-bold text-red-600 border border-red-200">' + T.del + '</button></div></div>' +
+                '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">' +
+                fl('kicker', 'ar', 'الشارة (عربي)') + fl('kicker', 'en', 'Badge (English)') +
+                fl('title', 'ar', 'العنوان (عربي)') + fl('title', 'en', 'Title (English)') +
+                fl('text', 'ar', 'الوصف (عربي)') + fl('text', 'en', 'Description (English)') +
+                fl('cta', 'ar', 'نص الزر (عربي)') + fl('cta', 'en', 'Button text (English)') + '</div></div>';
+        }).join('') || '<p class="text-xs text-center py-3" style="color:var(--ink-muted)">' + T.noSlides + '</p>';
+        $('ap-cat-list').innerHTML = categoriesList.map(c => {
+            const own = draft.categories[c.id], shown = prev('c:' + c.id, own || _ci(c.name_ar || c.name));
+            return '<div class="card rounded-xl p-2 text-center space-y-1.5"><img src="' + esc(shown) + '" class="w-full h-24 object-cover rounded-lg" alt="">' +
+                '<p class="text-[11px] font-bold truncate">' + esc(c.name) + '</p>' +
+                '<div class="flex gap-1.5 justify-center"><label class="btn-outline px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer">' + T.changeImg +
+                '<input type="file" accept="image/*" class="hidden" data-act="cat-img" data-cid="' + c.id + '"></label>' +
+                ((own || pending['c:' + c.id]) ? '<button type="button" data-act="cat-reset" data-cid="' + c.id + '" class="px-2 py-1 rounded text-[10px] font-bold" style="border:1px solid var(--line)">' + T.defaultImg + '</button>' : '') +
+                '</div></div>';
+        }).join('') || '<p class="text-xs col-span-full text-center py-3" style="color:var(--ink-muted)">' + T.noCats + '</p>';
+    }
+
+    panel.addEventListener('input', e => {
+        const f = e.target.dataset.f; if (!f) return;
+        const s = draft.hero.find(x => x._id === e.target.dataset.sid); if (s) s[f] = e.target.value;
+    });
+    panel.addEventListener('change', e => {
+        const t = e.target, file = t.files && t.files[0];
+        if (!file || !t.dataset.act) return;
+        const url = URL.createObjectURL(file);
+        if (t.dataset.act === 'hero-img') pending['h:' + t.dataset.sid] = { file, url };
+        if (t.dataset.act === 'cat-img') pending['c:' + t.dataset.cid] = { file, url };
+        render();
+    });
+    panel.addEventListener('click', e => {
+        const b = e.target.closest('button[data-act]'); if (!b) return;
+        const a = b.dataset.act, sid = b.dataset.sid, i = draft.hero.findIndex(x => x._id === sid);
+        if (a === 'del') { draft.hero.splice(i, 1); delete pending['h:' + sid]; }
+        if (a === 'up' && i > 0) draft.hero.splice(i - 1, 0, draft.hero.splice(i, 1)[0]);
+        if (a === 'down' && i < draft.hero.length - 1) draft.hero.splice(i + 1, 0, draft.hero.splice(i, 1)[0]);
+        if (a === 'cat-reset') { delete draft.categories[b.dataset.cid]; delete pending['c:' + b.dataset.cid]; }
+        render();
+    });
+    $('ap-add').addEventListener('click', () => {
+        if (draft.hero.length >= 6) { toast(T.maxSlides, 'error'); return; }
+        const o = { _id: rid(), img: IMGS.heroBanner };
+        FIELDS.forEach(f => { o[f + '_ar'] = ''; o[f + '_en'] = ''; });
+        draft.hero.push(o); render();
+    });
+    $('ap-reset').addEventListener('click', () => {
+        draft.hero = defaultDraft();
+        Object.keys(pending).filter(k => k[0] === 'h').forEach(k => delete pending[k]);
+        render();
+    });
+
+    async function shrink(file, maxW) {
+        try {
+            const bmp = await createImageBitmap(file);
+            const r = Math.min(1, maxW / bmp.width), c = document.createElement('canvas');
+            c.width = Math.round(bmp.width * r); c.height = Math.round(bmp.height * r);
+            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+            const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.86));
+            return blob || file;
+        } catch (e) { return file; }
+    }
+    async function uploadSite(file, maxW) {
+        const blob = await shrink(file, maxW);
+        const path = 'site/' + Date.now() + '-' + rid() + '.jpg';
+        const { error } = await _supabase.storage.from('product-images').upload(path, blob, { contentType: 'image/jpeg' });
+        if (error) throw error;
+        return _supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+    }
+    $('ap-save').addEventListener('click', async () => {
+        const btn = $('ap-save'), old = btn.innerHTML;
+        btn.disabled = true; btn.textContent = T.saving;
+        try {
+            for (const [k, p] of Object.entries(pending)) {
+                const isHero = k[0] === 'h', id = k.slice(2);
+                const url = await uploadSite(p.file, isHero ? 1920 : 900);
+                if (isHero) { const s = draft.hero.find(x => x._id === id); if (s) s.img = url; } else draft.categories[id] = url;
+            }
+            pending = {};
+            const value = { hero: draft.hero.map(({ _id, ...r }) => r), categories: draft.categories };
+            const { error } = await _supabase.from('site_settings').upsert([{ key: KEY, value, updated_at: new Date().toISOString() }]);
+            if (error) throw error;
+            APP = value; $('ap-missing').classList.add('hidden');
+            applyHero();
+            try { await fetchCategories(); } catch (e) {}
+            renderProducts();
+            toast(T.saved);
+            startDraft();
+        } catch (err) {
+            if (/site_settings|relation|does not exist|schema cache/i.test(String(err.message || err))) {
+                const m = $('ap-missing'); m.classList.remove('hidden');
+                m.innerHTML = T.sqlMissing + '<pre dir="ltr" style="white-space:pre-wrap;margin-top:6px;font-size:10px;user-select:all">' + esc("create table if not exists public.site_settings (\n  key text primary key,\n  value jsonb not null default '{}'::jsonb,\n  updated_at timestamptz default now()\n);\nalter table public.site_settings enable row level security;\ndrop policy if exists \"site_settings read\" on public.site_settings;\ndrop policy if exists \"site_settings write\" on public.site_settings;\ncreate policy \"site_settings read\" on public.site_settings for select using (true);\ncreate policy \"site_settings write\" on public.site_settings for all using (true) with check (true);") + '</pre>';
+            }
+            toast(T.failed + ' ' + (err.message || err), 'error');
+        } finally { btn.disabled = false; btn.innerHTML = old; }
+    });
+
+    const _sat = window.switchAdminTab;
+    window.switchAdminTab = function (tab) {
+        _sat(tab);
+        const btn = $('admin-tab-btn-appearance'), show = tab === 'appearance';
+        panel.classList.toggle('hidden', !show);
+        btn.style.borderColor = show ? 'var(--rosewood)' : 'transparent';
+        btn.style.color = show ? 'var(--rosewood)' : 'var(--ink-muted)';
+        if (show) startDraft();
+    };
+})();
+</script>
 </body>
 </html>
